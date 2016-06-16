@@ -57,6 +57,8 @@ in stdenv.mkDerivation rec {
     wrapProgram "$out/bin/servo" --prefix LD_LIBRARY_PATH : "${xorgCompositorLibs}"
   '';
   shellHook = ''
+    # Servo tries to switch between libX11 and wayland at runtime so we have
+    # to provide a path
     export LD_LIBRARY_PATH=${xorgCompositorLibs}:$LD_LIBRARY_PATH
   '';
 
