@@ -1,21 +1,35 @@
-{ version ? "master" 
+{ servoSrc
+, stdenv
+, curl
+, dbus
+, fontconfig
+, freeglut
+, freetype
+, gperf
+, libxmi
+, llvm
+, mesa
+, mesa_glu
+, openssl
+, pkgconfig
+, pythonPackages
+, makeWrapper
+, writeText
+, rustPlatform
+, xorg
 }:
 
 let
-  pkgs = import <nixpkgs> {};
-  inherit (pkgs) stdenv;
 
-  # Where the servo codes lives 
-  servoSrc = ../../servo/servo;
+  version = "latest";
 
-  # TODO: add wayland
-  xorgCompositorLibs = "${pkgs.xorg.libXcursor.out}/lib:${pkgs.xorg.libXi.out}/lib";
+  # TODO: add possibility to test against wayland
+  xorgCompositorLibs = "${xorg.libXcursor.out}/lib:${xorg.libXi.out}/lib";
 
-  rust = pkgs.rustUnstable;
-  rustc = rust.rustc;
-  cargo = rust.cargo;
+  inherit (rustPlatform) buildRustPackage;
+  inherit (rustPlatform.rust) rustc cargo;
 
-  servobuild = pkgs.writeText "servobuild" ''
+  servobuild = writeText "servobuild" ''
     [tools]
     cache-dir = "./downloads"
     cargo-home-dir = "./.downloads/clones
@@ -26,14 +40,15 @@ let
     [build]
   '';
 
-  servoRust = rust.buildRustPackage {
+  servoRust = buildRustPackage rec {
     name = "servo-rust-${version}";
     src = servoSrc;
     postUnpack = ''
       pwd
-      ls -la cargo-*
+      ls -la 
+      exit 100
     '';
-    sourceRoot = "cargo-*/components/servo";
+    sourceRoot = "servo/components/servo";
 
     depsSha256 = "0ca0lc8mm8kczll5m03n5fwsr0540c2xbfi4nn9ksn0s4sap50yn";
 
@@ -43,7 +58,8 @@ let
 in stdenv.mkDerivation rec {
   name = "servo-${version}";
   src = servoSrc;
-  buildInputs = with pkgs; [
+
+  buildInputs = [
     #cmake
     curl
     dbus
@@ -56,14 +72,13 @@ in stdenv.mkDerivation rec {
     mesa
     mesa_glu
     openssl
-    openssl
     pkgconfig
-    python3Packages.pip
-    python3Packages.virtualenv
+    pythonPackages.pip
+    pythonPackages.virtualenv
     xorg.libX11
     xorg.libXmu
 
-    # nixstuff
+    # nix stuff
     makeWrapper
     servoRust
   ];
