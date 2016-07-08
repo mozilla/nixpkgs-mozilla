@@ -38,7 +38,7 @@ let
         valgrind;
     };
   
-    servo = import ./pkgs/servo.nix {
+    servo = import ./pkgs/servo {
       pythonPackages = pkgs.python3Packages;
       inherit servoSrc rustPlatform;
       inherit (pkgs) stdenv curl dbus fontconfig freeglut freetype gperf libxmi
