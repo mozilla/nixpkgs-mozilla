@@ -1,0 +1,35 @@
+diff -x _inst -x _build -x .svn -ur libcxx.old/include/cstdio libcxx.new/include/cstdio
+--- libcxx.old/include/cstdio   2016-07-08 12:47:12.964181871 +0000
++++ libcxx.new/include/cstdio   2016-07-08 12:47:27.540149147 +0000
+@@ -109,15 +109,15 @@
+ #endif
+ 
+ #ifdef getc
+-inline _LIBCPP_INLINE_VISIBILITY int __libcpp_getc(FILE* __stream) {return getc(__stream);}
++inline __attribute__ ((__always_inline__)) int __libcpp_getc(FILE* __stream) {return getc(__stream);}
+ #undef getc
+-inline _LIBCPP_INLINE_VISIBILITY int getc(FILE* __stream) {return __libcpp_getc(__stream);}
++inline __attribute__ ((__always_inline__)) int getc(FILE* __stream) {return __libcpp_getc(__stream);}
+ #endif  // getc
+ 
+ #ifdef putc
+-inline _LIBCPP_INLINE_VISIBILITY int __libcpp_putc(int __c, FILE* __stream) {return putc(__c, __stream);}
++inline __attribute__ ((__always_inline__)) int __libcpp_putc(int __c, FILE* __stream) {return putc(__c, __stream);}
+ #undef putc
+-inline _LIBCPP_INLINE_VISIBILITY int putc(int __c, FILE* __stream) {return __libcpp_putc(__c, __stream);}
++inline __attribute__ ((__always_inline__)) int putc(int __c, FILE* __stream) {return __libcpp_putc(__c, __stream);}
+ #endif  // putc
+ 
+ #ifdef clearerr
+diff -x _inst -x _build -x .svn -ur libcxx.old/include/utility libcxx.new/include/utility
+--- libcxx.old/include/utility  2016-07-08 12:46:02.570334913 +0000
++++ libcxx.new/include/utility  2016-07-08 12:51:00.760636878 +0000
+@@ -217,7 +217,7 @@
+ }
+ 
+ template<class _Tp, size_t _Np>
+-inline _LIBCPP_INLINE_VISIBILITY
++inline __attribute__ ((__always_inline__))
+ void
+ swap(_Tp (&__a)[_Np], _Tp (&__b)[_Np]) _NOEXCEPT_(__is_nothrow_swappable<_Tp>::value)
+ {

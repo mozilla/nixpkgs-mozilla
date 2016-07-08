@@ -7,7 +7,7 @@
 , dbus, dbus_glib
 , alsaLib, libpulseaudio, gstreamer, gst_plugins_base
 , gtk3, glib, gobjectIntrospection
-, valgrind
+, valgrind, gdb, rr
 }:
 
 stdenv.mkDerivation {
@@ -42,7 +42,7 @@ stdenv.mkDerivation {
     gtk3 glib gobjectIntrospection
 
   ] ++ stdenv.lib.optionals stdenv.lib.inNixShell [
-    valgrind
+    valgrind gdb rr
   ];
 
   # Useful for debugging this Nix expression.
@@ -51,19 +51,19 @@ stdenv.mkDerivation {
   configurePhase = ''
     export MOZBUILD_STATE_PATH=$(pwd)/.mozbuild
     export MOZ_CONFIG=$(pwd)/.mozconfig
-    export builddir=$(pwd)/build
+    export builddir=$(pwd)/builddir
 
     mkdir -p $MOZBUILD_STATE_PATH $builddir
     echo > $MOZ_CONFIG "
     . $src/build/mozconfig.common
 
+    mk_add_options MOZ_OBJDIR=$builddir
+    mk_add_options AUTOCONF=${autoconf213}/bin/autoconf
     ac_add_options --prefix=$out
     ac_add_options --enable-application=browser
     ac_add_options --enable-official-branding
-    "
-
-    # Make sure mach can find autoconf 2.13, as it is not suffixed in Nix.
     export AUTOCONF=${autoconf213}/bin/autoconf
+    "
   '';
 
   AUTOCONF = "${autoconf213}/bin/autoconf";
