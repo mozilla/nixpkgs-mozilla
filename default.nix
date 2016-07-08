@@ -24,7 +24,7 @@ let
   self = {
 
   
-    gecko = import ./pkgs/gecko.nix {
+    gecko = import ./pkgs/gecko {
       inherit geckoSrc;
       inherit (pkgs)
         stdenv
