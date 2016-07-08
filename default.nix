@@ -45,7 +45,7 @@ let
         llvm mesa mesa_glu openssl pkgconfig makeWrapper writeText xorg;
     };
   
-    VidyoDesktop= import ./pkgs/VidyoDesktop/default.nix {
+    VidyoDesktop = import ./pkgs/VidyoDesktop {
       inherit (pkgs) stdenv fetchurl buildFHSUserEnv makeWrapper dpkg alsaLib
         alsaUtils alsaOss alsaTools alsaPlugins libidn utillinux mesa_glu qt4
         zlib patchelf xorg;
