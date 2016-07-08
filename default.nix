@@ -8,13 +8,7 @@
       sha256 = "1knrffx62i8zfg3jfhpn3hs5354sg44f8iq4c7hfvp4nsxsjskr4";
     }
 
-, servoSrc ?
-    pkgs.fetchFromGitHub {
-      owner = "servo";
-      repo = "servo";
-      rev = "b577d66ec374811a6493e95b37829269bbc97dfa";
-      sha256 = "13jqfh7b87ss5yf9c4yl7cggawjm6w4hd8aq0q275adjzdmazz14";
-    }
+, servoSrc ? null
 }:
 
 let
@@ -41,8 +35,9 @@ let
     servo = import ./pkgs/servo {
       pythonPackages = pkgs.python3Packages;
       inherit servoSrc rustPlatform;
-      inherit (pkgs) stdenv curl dbus fontconfig freeglut freetype gperf libxmi
-        llvm mesa mesa_glu openssl pkgconfig makeWrapper writeText xorg;
+      inherit (pkgs) stdenv lib fetchFromGitHub
+        curl dbus fontconfig freeglut freetype gperf libxmi llvm mesa
+        mesa_glu openssl pkgconfig makeWrapper writeText xorg;
     };
   
     VidyoDesktop = import ./pkgs/VidyoDesktop {
