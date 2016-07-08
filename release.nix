@@ -47,7 +47,35 @@ let
         else null;
     });
 
-    buildWithCompiler = cc: builderWithStdenv (stdenvAdapters.overrideCC stdenv cc);
+    # By default wrapCC keep the same header files, but NixOS is using the
+    # latest header files from GCC, which are not supported by clang, because
+    # clang implement a different set of locking primitives than GCC.  This
+    # expression is used to wrap clang with a matching verion of the libc++.
+    maybeWrapClang = cc:
+      if cc ? clang then clangWrapCC cc
+      else cc;
+    clangWrapCC = llvmPackages:
+      let libcxx =
+        pkgs.lib.overrideDerivation llvmPackages.libcxx (drv: {
+          # https://bugzilla.mozilla.org/show_bug.cgi?id=1277619
+          # https://llvm.org/bugs/show_bug.cgi?id=14435
+          patches = drv.patches ++ [ ./pkgs/clang/bug-14435.patch ];
+        });
+      in
+      callPackage <nixpkgs/pkgs/build-support/cc-wrapper> {
+        cc = llvmPackages.clang-unwrapped or llvmPackages.clang;
+        isClang = true;
+        stdenv = clangStdenv;
+        libc = glibc;
+        # cc-wrapper pulls gcc headers, which are not compatible with features
+        # implemented in clang.  These packages are used to override that.
+        extraPackages = [ libcxx llvmPackages.libcxxabi ];
+        nativeTools = false;
+        nativeLibc = false;
+      };
+
+    buildWithCompiler = cc: builderWithStdenv
+      (stdenvAdapters.overrideCC stdenv (maybeWrapClang cc));
     chgCompilerSource = cc: name: src:
       cc.override (conf:
         if conf ? gcc then # Nixpkgs 14.12
@@ -58,12 +86,9 @@ let
 
     compilersByName = {
       clang = clang;
-      # clang33 = clang_33  # not present in nixpkgs
-      clang34 = clang_34;
-      clang35 = clang_35;
-      clang36 = clang_36;
-      clang37 = clang_37;
-      clang38 = clang_38;
+      clang36 = llvmPackages_36;
+      clang37 = llvmPackages_37;
+      clang38 = llvmPackages_38; # not working yet.
       gcc = gcc;
       gcc49 = gcc49;
       gcc48 = gcc48;
@@ -80,7 +105,7 @@ let
     };
 
   in builtins.listToAttrs (map (x: { name = x; value = buildWithCompiler (builtins.getAttr x compilersByName); }) compilers);
-  
+
   build = name: { systems ? supportedSystems, compilers ? null }:
     forEachSystem systems (
       let 
@@ -93,9 +118,9 @@ let
 
   geckoCompilers = [
     "clang"
-    "clang33"
-    "clang34"
-    "clang35"
+    "clang36"
+    "clang37"
+    "clang38"
     "gcc"
     "gcc49"
     "gcc48"
