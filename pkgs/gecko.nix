@@ -7,7 +7,7 @@
 , dbus, dbus_glib
 , alsaLib, libpulseaudio, gstreamer, gst_plugins_base
 , gtk3, glib, gobjectIntrospection
-, valgrind
+, valgrind, gdb, rr
 }:
 
 stdenv.mkDerivation {
@@ -42,7 +42,7 @@ stdenv.mkDerivation {
     gtk3 glib gobjectIntrospection
 
   ] ++ stdenv.lib.optionals stdenv.lib.inNixShell [
-    valgrind
+    valgrind gdb rr
   ];
 
   # Useful for debugging this Nix expression.
