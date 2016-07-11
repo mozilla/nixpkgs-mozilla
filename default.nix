@@ -24,7 +24,7 @@ let
   self = {
 
   
-    gecko = import ./pkgs/gecko.nix {
+    gecko = import ./pkgs/gecko {
       inherit geckoSrc;
       inherit (pkgs)
         stdenv
@@ -38,14 +38,14 @@ let
         valgrind;
     };
   
-    servo = import ./pkgs/servo.nix {
+    servo = import ./pkgs/servo {
       pythonPackages = pkgs.python3Packages;
       inherit servoSrc rustPlatform;
       inherit (pkgs) stdenv curl dbus fontconfig freeglut freetype gperf libxmi
         llvm mesa mesa_glu openssl pkgconfig makeWrapper writeText xorg;
     };
   
-    VidyoDesktop= import ./pkgs/VidyoDesktop/default.nix {
+    VidyoDesktop = import ./pkgs/VidyoDesktop {
       inherit (pkgs) stdenv fetchurl buildFHSUserEnv makeWrapper dpkg alsaLib
         alsaUtils alsaOss alsaTools alsaPlugins libidn utillinux mesa_glu qt4
         zlib patchelf xorg;
