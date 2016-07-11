@@ -1,5 +1,5 @@
 { geckoSrc
-, stdenv
+, stdenv, lib
 , pythonFull, which, autoconf213
 , perl, unzip, zip, gnumake, yasm, pkgconfig
 , xlibs, gnome
@@ -12,8 +12,9 @@
 
 stdenv.mkDerivation {
   name = "firefox";
-  # TODO: we should maybe point to latest master?
-  src = geckoSrc;
+  # Gecko sources are huge, we do not want to import them in the nix-store when
+  # we use this expression for making a build environment.
+  src = if lib.inNixShell then null else geckoSrc;
   buildInputs = [
 
     # Expected by "mach"

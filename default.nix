@@ -21,7 +21,7 @@ let
     gecko = import ./pkgs/gecko {
       inherit geckoSrc;
       inherit (pkgs)
-        stdenv
+        stdenv lib
         pythonFull which autoconf213
         perl unzip zip gnumake yasm pkgconfig
         xlibs gnome
