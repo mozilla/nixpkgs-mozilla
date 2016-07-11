@@ -85,7 +85,7 @@ let
       );
 
     compilersByName = {
-      clang = clang;
+      clang = llvmPackages;
       clang36 = llvmPackages_36;
       clang37 = llvmPackages_37;
       clang38 = llvmPackages_38; # not working yet.
