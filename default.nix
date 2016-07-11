@@ -29,7 +29,7 @@ let
         dbus dbus_glib
         alsaLib libpulseaudio gstreamer gst_plugins_base
         gtk3 glib gobjectIntrospection
-        valgrind;
+        valgrind gdb rr;
     };
   
     servo = import ./pkgs/servo {
