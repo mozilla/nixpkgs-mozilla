@@ -1,5 +1,7 @@
-{ servoSrc
+{ servoSrc ? null
 , stdenv
+, lib
+, fetchFromGitHub
 , curl
 , dbus
 , fontconfig
@@ -20,6 +22,11 @@
 }:
 
 let
+  src =
+    if servoSrc == null then
+      fetchFromGitHub (lib.importJSON ./repo.json)
+    else
+      servoSrc;
 
   version = "latest";
 
@@ -41,8 +48,8 @@ let
   '';
 
   servoRust = buildRustPackage rec {
+    inherit src;
     name = "servo-rust-${version}";
-    src = servoSrc;
     postUnpack = ''
       pwd
       ls -la 
