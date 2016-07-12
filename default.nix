@@ -1,22 +1,39 @@
-{ pkgs ? import <nixpkgs> {}
+{ pkgs ? null
 , geckoSrc ? null
 , servoSrc ? null
 }:
 
 let
 
-  rustPlatform = pkgs.recurseIntoAttrs (pkgs.makeRustPlatform pkgs.rustUnstable rustPlatform);
+  _pkgs = import <nixpkgs> {};
+
+  _nixpkgs = if pkgs == null
+    then (import (_pkgs.fetchFromGitHub (_pkgs.lib.importJSON ./pkgs/nixpkgs.json)) {})
+    else pkgs;
 
   pkgs_mozilla = {
 
-    nixpkgs = pkgs;
+    rustPlatform = pkgs_mozilla.nixpkgs.recurseIntoAttrs (
+      pkgs_mozilla.nixpkgs.makeRustPlatform
+      pkgs_mozilla.nixpkgs.rustUnstable
+      pkgs_mozilla.rustPlatform
+    );
+
+    nixpkgs = _nixpkgs // {
+      update_src = pkgs_mozilla.lib.updateFromGitHub {
+        owner = "NixOS";
+        repo = "nixpkgs-channels";
+        branch = "nixos-unstable";
+        path = "pkgs/nixpkgs.json";
+      };
+    };
 
     lib = import ./lib/default.nix { inherit pkgs_mozilla; };
   
     gecko = import ./pkgs/gecko {
       inherit geckoSrc;
       inherit (pkgs_mozilla.lib) updateFromGitHub;
-      inherit (pkgs)
+      inherit (pkgs_mozilla.nixpkgs)
         stdenv lib
         pythonFull which autoconf213
         perl unzip zip gnumake yasm pkgconfig
@@ -30,16 +47,17 @@ let
     };
   
     servo = import ./pkgs/servo {
-      pythonPackages = pkgs.python3Packages;
-      inherit servoSrc rustPlatform;
+      pythonPackages = pkgs_mozilla.nixpkgs.python3Packages;
+      inherit servoSrc;
+      inherit (pkgs_mozilla) rustPlatform;
       inherit (pkgs_mozilla.lib) updateFromGitHub;
-      inherit (pkgs) stdenv lib fetchFromGitHub
+      inherit (pkgs_mozilla.nixpkgs) stdenv lib fetchFromGitHub
         curl dbus fontconfig freeglut freetype gperf libxmi llvm mesa
         mesa_glu openssl pkgconfig makeWrapper writeText xorg;
     };
   
     VidyoDesktop = import ./pkgs/VidyoDesktop {
-      inherit (pkgs) stdenv fetchurl buildFHSUserEnv makeWrapper dpkg alsaLib
+      inherit (pkgs_mozilla.nixpkgs) stdenv fetchurl buildFHSUserEnv makeWrapper dpkg alsaLib
         alsaUtils alsaOss alsaTools alsaPlugins libidn utillinux mesa_glu qt4
         zlib patchelf xorg;
     };

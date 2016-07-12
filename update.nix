@@ -1,8 +1,9 @@
 { pkg ? null
+, pkgs ? null
 }:
 
 let
-  pkgs_mozilla = import ./default.nix {};
+  pkgs_mozilla = import ./default.nix { inherit pkgs; };
   packages = if pkg == null
     then pkgs_mozilla.lib.packagesToUpdate
     else [(builtins.getAttr pkg pkgs_mozilla).update_src];

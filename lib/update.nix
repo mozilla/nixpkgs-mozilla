@@ -1,7 +1,7 @@
 { pkgs_mozilla }:
 
 let
-  inherit (pkgs_mozilla.nixpkgs) cacert nix jq;
+  inherit (pkgs_mozilla.nixpkgs) cacert nix-prefetch-scripts jq;
 in {
 
   packagesToUpdate = map
@@ -21,8 +21,11 @@ in {
     }
 
     github_sha256() {
-      ${nix.out}/bin/nix-prefetch-url --type sha256 "https://github.com/$1/$2/archive/$3.tar.gz" | \
-        tail -n1
+      ${nix-prefetch-scripts}/bin/nix-prefetch-zip \
+         --hash-type sha256 \
+         "https://github.com/$1/$2/archive/$3.tar.gz" 2>&1 | \
+         grep "hash is " | \
+         sed 's/hash is //'
     }
 
     echo "=== ${owner}/${repo}@${branch} ==="
@@ -34,6 +37,10 @@ in {
     sha256=$(github_sha256 "${owner}" "${repo}" "$rev");
     echo "sha256 is \`$sha256\`."
 
+    if [ "$sha256" == "" ]; then
+      echo "sha256 is not valid!"
+      exit 2
+    fi
     source_file=$HOME/${path}
     echo "Content of source file (``$source_file``) written."
     cat <<REPO | tee "$source_file"
