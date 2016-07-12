@@ -1,4 +1,5 @@
 { servoSrc ? null
+, updateFromGitHub
 , stdenv
 , lib
 , fetchFromGitHub
@@ -101,5 +102,10 @@ in stdenv.mkDerivation rec {
     # to provide a path
     export LD_LIBRARY_PATH=${xorgCompositorLibs}:$LD_LIBRARY_PATH
   '';
-  passthru.source = { owner = "servo"; repo = "servo"; branch = "master"; };
+  passthru.update_src = updateFromGitHub {
+    owner = "servo";
+    repo = "servo";
+    branch = "master";
+    path = "pkgs/servo/source.json";
+  };
 }

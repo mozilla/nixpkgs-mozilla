@@ -1,4 +1,5 @@
 { geckoSrc ? null
+, updateFromGitHub
 , stdenv, lib
 , pythonFull, which, autoconf213
 , perl, unzip, zip, gnumake, yasm, pkgconfig
@@ -12,6 +13,9 @@
 }:
 
 let
+
+  # Gecko sources are huge, we do not want to import them in the nix-store when
+  # we use this expression for making a build environment.
   src =
     if geckoSrc == null then
       fetchFromGitHub (lib.importJSON ./source.json)
@@ -23,9 +27,7 @@ let
 
 in stdenv.mkDerivation {
   name = "firefox-${version}";
-  # Gecko sources are huge, we do not want to import them in the nix-store when
-  # we use this expression for making a build environment.
-  src = if lib.inNixShell then null else geckoSrc;
+  inherit src;
   buildInputs = [
 
     # Expected by "mach"
@@ -97,5 +99,10 @@ in stdenv.mkDerivation {
   shellHook = ''
     export MOZBUILD_STATE_PATH=$PWD/.mozbuild
   '';
-  passthru.source = { owner = "mozilla"; repo = "gecko-dev"; branch = "master"; };
+  passthru.update_src = updateFromGitHub {
+    owner = "mozilla";
+    repo = "gecko-dev";
+    branch = "master";
+    path = "pkgs/gecko/source.json";
+  };
 }

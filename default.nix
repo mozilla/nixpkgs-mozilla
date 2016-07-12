@@ -7,11 +7,15 @@ let
 
   rustPlatform = pkgs.recurseIntoAttrs (pkgs.makeRustPlatform pkgs.rustUnstable rustPlatform);
 
-  self = {
+  pkgs_mozilla = {
 
+    nixpkgs = pkgs;
+
+    lib = import ./lib/default.nix { inherit pkgs_mozilla; };
   
     gecko = import ./pkgs/gecko {
       inherit geckoSrc;
+      inherit (pkgs_mozilla.lib) updateFromGitHub;
       inherit (pkgs)
         stdenv lib
         pythonFull which autoconf213
@@ -28,6 +32,7 @@ let
     servo = import ./pkgs/servo {
       pythonPackages = pkgs.python3Packages;
       inherit servoSrc rustPlatform;
+      inherit (pkgs_mozilla.lib) updateFromGitHub;
       inherit (pkgs) stdenv lib fetchFromGitHub
         curl dbus fontconfig freeglut freetype gperf libxmi llvm mesa
         mesa_glu openssl pkgconfig makeWrapper writeText xorg;
@@ -41,4 +46,4 @@ let
 
   };
 
-in self
+in pkgs_mozilla
