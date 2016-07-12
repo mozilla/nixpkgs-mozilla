@@ -14,6 +14,13 @@ let
       builder (import nixpkgsSrc { inherit system; })
     );
 
+  buildDocker = imageAttrs:
+    pkgs'.runCommand "release-${imageAttrs.name}" {} ''
+      mkdir -p $out/nix-support
+      ln -s ${pkgs'.dockerTools.buildImage imageAttrs} $out/docker.tar.gz
+      echo "file binary-dist $out/docker.tar.gz" > $out/nix-support/hydra-build-products
+    '';
+
   # Make an attribute set for each compiler, the builder is then be specialized
   # to use the selected compiler.
   forEachCompiler = compilers: builder: pkgs:
@@ -129,6 +136,8 @@ let
     "gcc472"
   ];
 
+  pkgs_x86_64-linux = import nixpkgsSrc { system = "x86_64-linux"; };
+
   jobs = rec {
 
     # For each system, and each compiler, create an attribute with the name of
@@ -148,10 +157,20 @@ let
     #   $ nix-shell release.nix -A gecko.x86_64-linux.clang --pure
     #
     gecko = build "gecko" { compilers = geckoCompilers; };
+
     servo = build "servo";
+
     VidyoDesktop = build "VidyoDesktop";
+
+    docker-nix = buildDocker {
+      name = "docker-nix";
+      fromImage = null;
+      contents = with pkgs_x86_64-linux; [
+        busybox nix vim git
+      ];
+      config = {};
+    };
 
   };
 
-in
-  jobs
+in jobs
