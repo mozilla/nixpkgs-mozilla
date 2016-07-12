@@ -1,13 +1,5 @@
 { pkgs ? import <nixpkgs> {}
-
-, geckoSrc ?
-    pkgs.fetchFromGitHub {
-      owner = "mozilla";
-      repo = "gecko-dev";
-      rev = "bcd7fc0f642b97c9b0a2618750e1788547aa8322";
-      sha256 = "1knrffx62i8zfg3jfhpn3hs5354sg44f8iq4c7hfvp4nsxsjskr4";
-    }
-
+, geckoSrc ? null
 , servoSrc ? null
 }:
 
@@ -29,7 +21,8 @@ let
         dbus dbus_glib
         alsaLib libpulseaudio gstreamer gst_plugins_base
         gtk3 glib gobjectIntrospection
-        valgrind gdb rr;
+        valgrind gdb rr
+        fetchFromGitHub;
     };
   
     servo = import ./pkgs/servo {
