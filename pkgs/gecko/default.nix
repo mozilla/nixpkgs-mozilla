@@ -99,7 +99,7 @@ in stdenv.mkDerivation {
   shellHook = ''
     export MOZBUILD_STATE_PATH=$PWD/.mozbuild
   '';
-  passthru.update_src = updateFromGitHub {
+  passthru.updateSrc = updateFromGitHub {
     owner = "mozilla";
     repo = "gecko-dev";
     branch = "master";

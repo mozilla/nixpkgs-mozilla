@@ -102,7 +102,7 @@ in stdenv.mkDerivation rec {
     # to provide a path
     export LD_LIBRARY_PATH=${xorgCompositorLibs}:$LD_LIBRARY_PATH
   '';
-  passthru.update_src = updateFromGitHub {
+  passthru.updateSrc = updateFromGitHub {
     owner = "servo";
     repo = "servo";
     branch = "master";

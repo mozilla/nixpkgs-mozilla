@@ -5,9 +5,9 @@ let
 in {
 
   packagesToUpdate = map
-    (pkg: pkg.update_src)
+    (pkg: pkg.updateSrc)
     (builtins.filter
-      (pkg: builtins.hasAttr "update_src" pkg)
+      (pkg: builtins.hasAttr "updateSrc" pkg)
       (builtins.attrValues pkgs_mozilla)
     );
 

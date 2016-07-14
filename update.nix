@@ -6,7 +6,7 @@ let
   pkgs_mozilla = import ./default.nix { inherit pkgs; };
   packages = if pkg == null
     then pkgs_mozilla.lib.packagesToUpdate
-    else [(builtins.getAttr pkg pkgs_mozilla).update_src];
+    else [(builtins.getAttr pkg pkgs_mozilla).updateSrc];
 in pkgs_mozilla.nixpkgs.stdenv.mkDerivation {
   name = "update-nixpkgs-mozilla";
   buildCommand = ''
@@ -14,6 +14,7 @@ in pkgs_mozilla.nixpkgs.stdenv.mkDerivation {
     echo "| Not possible to update repositories using \`nix-build\`. |"
     echo "|         Please run \`nix-shell update.nix\`.             |"
     echo "+--------------------------------------------------------+"
+    exit 1
   '';
   shellHook = ''
     export HOME=$PWD

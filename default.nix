@@ -13,6 +13,8 @@ let
 
   pkgs_mozilla = {
 
+    lib = import ./pkgs/lib/default.nix { inherit pkgs_mozilla; };
+
     rustPlatform = pkgs_mozilla.nixpkgs.recurseIntoAttrs (
       pkgs_mozilla.nixpkgs.makeRustPlatform
       pkgs_mozilla.nixpkgs.rustUnstable
@@ -20,7 +22,7 @@ let
     );
 
     nixpkgs = _nixpkgs // {
-      update_src = pkgs_mozilla.lib.updateFromGitHub {
+      updateSrc = pkgs_mozilla.lib.updateFromGitHub {
         owner = "NixOS";
         repo = "nixpkgs-channels";
         branch = "nixos-unstable";
@@ -28,8 +30,6 @@ let
       };
     };
 
-    lib = import ./lib/default.nix { inherit pkgs_mozilla; };
-  
     gecko = import ./pkgs/gecko {
       inherit geckoSrc;
       inherit (pkgs_mozilla.lib) updateFromGitHub;
