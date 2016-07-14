@@ -1,4 +1,5 @@
 { servoSrc ? null
+, updateFromGitHub
 , stdenv
 , lib
 , fetchFromGitHub
@@ -24,10 +25,11 @@
 let
   src =
     if servoSrc == null then
-      fetchFromGitHub (lib.importJSON ./repo.json)
+      fetchFromGitHub (lib.importJSON ./source.json)
     else
       servoSrc;
 
+  # TODO: figure out version from servoSrc
   version = "latest";
 
   # TODO: add possibility to test against wayland
@@ -100,5 +102,10 @@ in stdenv.mkDerivation rec {
     # to provide a path
     export LD_LIBRARY_PATH=${xorgCompositorLibs}:$LD_LIBRARY_PATH
   '';
-
+  passthru.updateSrc = updateFromGitHub {
+    owner = "servo";
+    repo = "servo";
+    branch = "master";
+    path = "pkgs/servo/source.json";
+  };
 }
