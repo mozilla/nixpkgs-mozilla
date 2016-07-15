@@ -1,7 +1,8 @@
 { pkgs_mozilla }:
 
 let
-  inherit (pkgs_mozilla.nixpkgs) cacert nix-prefetch-scripts jq;
+  inherit (pkgs_mozilla.nixpkgs) cacert nix-prefetch-scripts jq curl gnused
+    gnugrep coreutils;
 in {
 
   packagesToUpdate = map
@@ -15,17 +16,17 @@ in {
     export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt
 
     github_rev() {
-      curl -sSf "https://api.github.com/repos/$1/$2/branches/$3" | \
+      ${curl.bin}/bin/curl -sSf "https://api.github.com/repos/$1/$2/branches/$3" | \
         ${jq}/bin/jq '.commit.sha' | \
-        sed 's/"//g'
+        ${gnused}/bin/sed 's/"//g'
     }
 
     github_sha256() {
       ${nix-prefetch-scripts}/bin/nix-prefetch-zip \
          --hash-type sha256 \
          "https://github.com/$1/$2/archive/$3.tar.gz" 2>&1 | \
-         grep "hash is " | \
-         sed 's/hash is //'
+         ${gnugrep}/bin/grep "hash is " | \
+         ${gnused}/bin/sed 's/hash is //'
     }
 
     echo "=== ${owner}/${repo}@${branch} ==="
@@ -43,7 +44,7 @@ in {
     fi
     source_file=$HOME/${path}
     echo "Content of source file (``$source_file``) written."
-    cat <<REPO | tee "$source_file"
+    cat <<REPO | ${coreutils}/bin/tee "$source_file"
     {
       "owner": "${owner}",
       "repo": "${repo}",
