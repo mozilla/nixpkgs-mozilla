@@ -1,4 +1,12 @@
 language: nix
+env:
+ - STDENV=clang
+ - STDENV=clang36
+ - STDENV=clang37
+ - STDENV=clang38
+ - STDENV=gcc
+ - STDENV=gcc49
+ - STDENV=gcc48
 script:
   - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then nix-shell update.nix --pure; fi
-  - if [ "$TRAVIS_PULL_REQUEST" != "true" -a "$TRAVIS_BRANCH" = "master" ]; then nix-build release.nix -A travis; fi
+  - if [ "$TRAVIS_PULL_REQUEST" != "true" -a "$TRAVIS_BRANCH" = "master" ]; then nix-build release.nix -A gecko."x86_64-linux"."$STDENV"; fi

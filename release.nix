@@ -150,16 +150,6 @@ let
     gecko = build "gecko" { compilers = geckoCompilers; };
     servo = build "servo";
     VidyoDesktop = build "VidyoDesktop";
-
-    travis = pkgs'.releaseTools.aggregate {
-      name = "nixpkgs-mozilla-release-123";
-      meta.description = "Aggregate job containing the release-critical jobs.";
-      constituents =
-        builtins.attrValues jobs.gecko."x86_64-linux"
-        ;
-
-    };
-
   };
 
 in jobs
