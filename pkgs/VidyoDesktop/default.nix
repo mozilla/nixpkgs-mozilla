@@ -5,7 +5,7 @@
 
 let
   VidyoDesktopDeb = stdenv.mkDerivation {
-    name = "VidyoDesktopDeb";
+    name = "VidyoDesktopDeb-123";
     builder = ./builder.sh;
     inherit dpkg;
     src = fetchurl {
@@ -16,7 +16,7 @@ let
   };
 
 in buildFHSUserEnv {
-  name = "VidyoDesktop";
+  name = "VidyoDesktop-123";
   targetPkgs = pkgs: [ VidyoDesktopDeb ];
   multiPkgs = pkgs: [
     patchelf dpkg alsaLib alsaUtils alsaOss alsaTools alsaPlugins

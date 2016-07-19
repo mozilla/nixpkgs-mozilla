@@ -1,3 +1,4 @@
 language: nix
 script:
   - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then nix-shell update.nix --pure; fi
+  - if [ "$TRAVIS_PULL_REQUEST" != "true" -a "$TRAVIS_BRANCH" = "master" ]; then nix-build release.nix -A travis; fi

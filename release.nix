@@ -124,12 +124,12 @@ let
     "gcc"
     "gcc49"
     "gcc48"
-    "gcc474"
-    "gcc473"
-    "gcc472"
+    #"gcc474"
+    #"gcc473"
+    #"gcc472"
   ];
 
-  jobs = rec {
+  jobs = {
 
     # For each system, and each compiler, create an attribute with the name of
     # the system and compiler. Use this attribute name to select which
@@ -151,7 +151,15 @@ let
     servo = build "servo";
     VidyoDesktop = build "VidyoDesktop";
 
+    travis = pkgs'.releaseTools.aggregate {
+      name = "nixpkgs-mozilla-release-123";
+      meta.description = "Aggregate job containing the release-critical jobs.";
+      constituents =
+        builtins.attrValues jobs.gecko."x86_64-linux"
+        ;
+
+    };
+
   };
 
-in
-  jobs
+in jobs
