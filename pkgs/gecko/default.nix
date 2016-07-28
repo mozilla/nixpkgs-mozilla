@@ -1,7 +1,7 @@
 { geckoSrc ? null
 , updateFromGitHub
 , stdenv, lib
-, pythonFull, which, autoconf213
+, pythonFull, setuptools, which, autoconf213
 , perl, unzip, zip, gnumake, yasm, pkgconfig
 , xlibs, gnome
 , pango
@@ -31,7 +31,7 @@ in stdenv.mkDerivation {
   buildInputs = [
 
     # Expected by "mach"
-    pythonFull which autoconf213
+    pythonFull setuptools which autoconf213
 
     # Expected by the configure script
     perl unzip zip gnumake yasm pkgconfig

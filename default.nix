@@ -35,7 +35,7 @@ let
       inherit (pkgs_mozilla.lib) updateFromGitHub;
       inherit (pkgs_mozilla.nixpkgs)
         stdenv lib
-        pythonFull which autoconf213
+        pythonFull setuptools which autoconf213
         perl unzip zip gnumake yasm pkgconfig
         xlibs gnome
         pango
