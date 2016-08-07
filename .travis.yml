@@ -1,12 +1,21 @@
 language: nix
+addons:
+  ssh_known_hosts: floki.garbas.si
 env:
- - STDENV=clang
- - STDENV=clang36
- - STDENV=clang37
- - STDENV=clang38
- - STDENV=gcc
- - STDENV=gcc49
- - STDENV=gcc48
+- STDENV=clang
+- STDENV=clang36
+- STDENV=clang37
+- STDENV=clang38
+- STDENV=gcc
+- STDENV=gcc49
+- STDENV=gcc48
 script:
-  - if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then nix-shell update.nix --pure; fi
-  - if [ "$TRAVIS_PULL_REQUEST" != "true" -a "$TRAVIS_BRANCH" = "master" ]; then nix-build release.nix -A gecko."x86_64-linux"."$STDENV"; fi
+- if [ "$TRAVIS_EVENT_TYPE" == "cron" ]; then nix-shell update.nix --pure; fi
+- if [ "$TRAVIS_PULL_REQUEST" != "true" -a "$TRAVIS_BRANCH" = "master" ]; then nix-build
+  release.nix -A gecko."x86_64-linux"."$STDENV"; fi
+before_install:
+- openssl aes-256-cbc -K $encrypted_be02022e0814_key -iv $encrypted_be02022e0814_iv -in deploy_rsa.enc -out deploy_rsa -d
+before_deploy:
+- eval "$(ssh-agent -s)"
+- chmod 600 $TRAVIS_BUILD_DIR/deploy_rsa
+- ssh-add $TRAVIS_BUILD_DIR/deploy_rsa
