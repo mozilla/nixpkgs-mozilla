@@ -15,11 +15,9 @@ script:
   fi
 - if [ "$TRAVIS_PULL_REQUEST" != "true" -a "$TRAVIS_BRANCH" = "master" ]; then
     nix-build release.nix -A gecko."x86_64-linux"."$STDENV";
-    mkdir nars/
-    nix-push --dest "$PWD/nars/" --force ./result
+    mkdir nars/;
+    nix-push --dest "$PWD/nars/" --force ./result;
   fi
-- 
-
 before_install:
 - openssl aes-256-cbc -K $encrypted_be02022e0814_key -iv $encrypted_be02022e0814_iv -in deploy_rsa.enc -out deploy_rsa -d
 before_deploy:
