@@ -3,7 +3,7 @@
 , stdenv, lib
 , pythonFull, setuptools, which, autoconf213
 , perl, unzip, zip, gnumake, yasm, pkgconfig
-, xlibs, gnome
+, xlibs, gnome2
 , pango
 , dbus, dbus_glib
 , alsaLib, libpulseaudio, gstreamer, gst_plugins_base
@@ -42,9 +42,9 @@ in stdenv.mkDerivation {
     xlibs.compositeproto xlibs.libXfixes xlibs.fixesproto
     xlibs.damageproto xlibs.libXdamage xlibs.libXrender xlibs.kbproto
 
-    gnome.libart_lgpl gnome.libbonobo gnome.libbonoboui
-    gnome.libgnome gnome.libgnomecanvas gnome.libgnomeui
-    gnome.libIDL
+    gnome2.libart_lgpl gnome2.libbonobo gnome2.libbonoboui
+    gnome2.libgnome gnome2.libgnomecanvas gnome2.libgnomeui
+    gnome2.libIDL
 
     pango
 

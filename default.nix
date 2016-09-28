@@ -35,15 +35,17 @@ let
       inherit (pkgs_mozilla.lib) updateFromGitHub;
       inherit (pkgs_mozilla.nixpkgs)
         stdenv lib
-        pythonFull setuptools which autoconf213
+        pythonFull which autoconf213
         perl unzip zip gnumake yasm pkgconfig
-        xlibs gnome
+        xlibs gnome2
         pango
         dbus dbus_glib
         alsaLib libpulseaudio gstreamer gst_plugins_base
         gtk3 glib gobjectIntrospection
         valgrind gdb rr
         fetchFromGitHub;
+      inherit (pkgs_mozilla.nixpkgs.pythonPackages)
+        setuptools;
     };
   
     servo = import ./pkgs/servo {
