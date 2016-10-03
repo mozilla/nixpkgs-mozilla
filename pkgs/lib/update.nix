@@ -1,7 +1,7 @@
-{ pkgs_mozilla }:
+{ mozpkgs }:
 
 let
-  inherit (pkgs_mozilla.nixpkgs) cacert nix-prefetch-scripts jq curl gnused
+  inherit (mozpkgs.nixpkgs) cacert nix-prefetch-scripts jq curl gnused
     gnugrep coreutils;
 in {
 
@@ -9,7 +9,7 @@ in {
     (pkg: pkg.updateSrc)
     (builtins.filter
       (pkg: builtins.hasAttr "updateSrc" pkg)
-      (builtins.attrValues pkgs_mozilla)
+      (builtins.attrValues mozpkgs)
     );
 
   updateFromGitHub = { owner, repo, path, branch }: ''

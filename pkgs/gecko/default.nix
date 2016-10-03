@@ -1,31 +1,31 @@
 { geckoSrc ? null
-, updateFromGitHub
-, stdenv, lib
-, pythonFull, setuptools, which, autoconf213
-, perl, unzip, zip, gnumake, yasm, pkgconfig
-, xlibs, gnome2
-, pango
-, dbus, dbus_glib
-, alsaLib, libpulseaudio, gstreamer, gst_plugins_base
-, gtk3, glib, gobjectIntrospection
-, valgrind, gdb, rr
-, fetchFromGitHub
+, lib
+, nixpkgs
 }:
 
 let
+
+  inherit (lib) updateFromGitHub;
+  inherit (nixpkgs) fetchFromGitHub pythonFull which autoconf213
+    perl unzip zip gnumake yasm pkgconfig xlibs gnome2 pango dbus dbus_glib
+    alsaLib libpulseaudio gstreamer gst_plugins_base gtk3 glib
+    gobjectIntrospection valgrind gdb rr;
+  inherit (nixpkgs.pythonPackages) setuptools;
+  inherit (nixpkgs.stdenv) mkDerivation;
+  inherit (nixpkgs.lib) importJSON optionals inNixShell;
 
   # Gecko sources are huge, we do not want to import them in the nix-store when
   # we use this expression for making a build environment.
   src =
     if geckoSrc == null then
-      fetchFromGitHub (lib.importJSON ./source.json)
+      fetchFromGitHub (importJSON ./source.json)
     else
       geckoSrc;
 
   # TODO: figure out version from geckoSrc
   version = "latest";
 
-in stdenv.mkDerivation {
+in mkDerivation {
   name = "firefox-${version}";
   inherit src;
   buildInputs = [
@@ -55,7 +55,7 @@ in stdenv.mkDerivation {
 
     gtk3 glib gobjectIntrospection
 
-  ] ++ stdenv.lib.optionals stdenv.lib.inNixShell [
+  ] ++ optionals inNixShell [
     valgrind gdb rr
   ];
 

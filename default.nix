@@ -1,28 +1,29 @@
-{ pkgs ? null
+let
+  _pkgs = import <nixpkgs> {};
+  _nixpkgs = _pkgs.fetchFromGitHub (_pkgs.lib.importJSON ./pkgs/nixpkgs.json);
+in
+
+{ pkgs ? import _nixpkgs {}
 , geckoSrc ? null
 , servoSrc ? null
 }:
 
 let
+  callPackage = (extra: pkgs.lib.callPackageWith
+    ({ inherit geckoSrc servoSrc; } // mozpkgs // extra)) {};
 
-  _pkgs = import <nixpkgs> {};
+  mozpkgs = {
 
-  _nixpkgs = if pkgs == null
-    then (import (_pkgs.fetchFromGitHub (_pkgs.lib.importJSON ./pkgs/nixpkgs.json)) {})
-    else pkgs;
+    lib = import ./pkgs/lib/default.nix { inherit mozpkgs; };
 
-  pkgs_mozilla = {
-
-    lib = import ./pkgs/lib/default.nix { inherit pkgs_mozilla; };
-
-    rustPlatform = pkgs_mozilla.nixpkgs.recurseIntoAttrs (
-      pkgs_mozilla.nixpkgs.makeRustPlatform
-      pkgs_mozilla.nixpkgs.rustUnstable
-      pkgs_mozilla.rustPlatform
+    rustPlatform = pkgs.recurseIntoAttrs (
+      pkgs.makeRustPlatform
+      pkgs.rustUnstable
+      mozpkgs.rustPlatform
     );
 
-    nixpkgs = _nixpkgs // {
-      updateSrc = pkgs_mozilla.lib.updateFromGitHub {
+    nixpkgs = pkgs // {
+      updateSrc = mozpkgs.lib.updateFromGitHub {
         owner = "NixOS";
         repo = "nixpkgs-channels";
         branch = "nixos-unstable";
@@ -30,40 +31,12 @@ let
       };
     };
 
-    gecko = import ./pkgs/gecko {
-      inherit geckoSrc;
-      inherit (pkgs_mozilla.lib) updateFromGitHub;
-      inherit (pkgs_mozilla.nixpkgs)
-        stdenv lib
-        pythonFull which autoconf213
-        perl unzip zip gnumake yasm pkgconfig
-        xlibs gnome2
-        pango
-        dbus dbus_glib
-        alsaLib libpulseaudio gstreamer gst_plugins_base
-        gtk3 glib gobjectIntrospection
-        valgrind gdb rr
-        fetchFromGitHub;
-      inherit (pkgs_mozilla.nixpkgs.pythonPackages)
-        setuptools;
-    };
+    gecko = callPackage ./pkgs/gecko { };
+
+    servo = callPackage ./pkgs/servo { };
   
-    servo = import ./pkgs/servo {
-      pythonPackages = pkgs_mozilla.nixpkgs.python3Packages;
-      inherit servoSrc;
-      inherit (pkgs_mozilla) rustPlatform;
-      inherit (pkgs_mozilla.lib) updateFromGitHub;
-      inherit (pkgs_mozilla.nixpkgs) stdenv lib fetchFromGitHub
-        curl dbus fontconfig freeglut freetype gperf libxmi llvm mesa
-        mesa_glu openssl pkgconfig makeWrapper writeText xorg;
-    };
-  
-    VidyoDesktop = import ./pkgs/VidyoDesktop {
-      inherit (pkgs_mozilla.nixpkgs) stdenv fetchurl buildFHSUserEnv makeWrapper dpkg alsaLib
-        alsaUtils alsaOss alsaTools alsaPlugins libidn utillinux mesa_glu qt4
-        zlib patchelf xorg;
-    };
+    VidyoDesktop = callPackage ./pkgs/VidyoDesktop { };
 
   };
 
-in pkgs_mozilla
+in mozpkgs

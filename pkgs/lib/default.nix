@@ -1,7 +1,7 @@
-{ pkgs_mozilla }:
+{ mozpkgs }:
 
 let
-  update = import ./update.nix { inherit pkgs_mozilla; };
+  update = import ./update.nix { inherit mozpkgs; };
 in
   { inherit update; }
   // update

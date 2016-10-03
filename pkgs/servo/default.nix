@@ -1,28 +1,22 @@
 { servoSrc ? null
-, updateFromGitHub
-, stdenv
 , lib
-, fetchFromGitHub
-, curl
-, dbus
-, fontconfig
-, freeglut
-, freetype
-, gperf
-, libxmi
-, llvm
-, mesa
-, mesa_glu
-, openssl
-, pkgconfig
-, pythonPackages
-, makeWrapper
-, writeText
 , rustPlatform
-, xorg
+, nixpkgs
 }:
 
 let
+
+  inherit (lib) updateFromGitHub;
+  inherit (nixpkgs) fetchFromGitHub curl dbus fontconfig freeglut freetype
+    gperf libxmi llvm mesa mesa_glu openssl pkgconfig makeWrapper writeText
+    xorg;
+  inherit (nixpkgs.stdenv) mkDerivation;
+  inherit (nixpkgs.lib) importJSON;
+  inherit (rustPlatform) buildRustPackage;
+  inherit (rustPlatform.rust) rustc cargo;
+
+  pythonPackages = nixpkgs.python3Packages;
+
   src =
     if servoSrc == null then
       fetchFromGitHub (lib.importJSON ./source.json)
@@ -34,9 +28,6 @@ let
 
   # TODO: add possibility to test against wayland
   xorgCompositorLibs = "${xorg.libXcursor.out}/lib:${xorg.libXi.out}/lib";
-
-  inherit (rustPlatform) buildRustPackage;
-  inherit (rustPlatform.rust) rustc cargo;
 
   servobuild = writeText "servobuild" ''
     [tools]
@@ -64,7 +55,7 @@ let
     doCheck = false;
   };
 
-in stdenv.mkDerivation rec {
+in mkDerivation rec {
   name = "servo-${version}";
   src = servoSrc;
 

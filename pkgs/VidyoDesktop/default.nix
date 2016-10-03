@@ -1,10 +1,14 @@
-{ stdenv, fetchurl, buildFHSUserEnv, makeWrapper, dpkg, alsaLib, alsaUtils
-, alsaOss, alsaTools, alsaPlugins, libidn, utillinux, mesa_glu, qt4, zlib
-, patchelf, xorg
+{ nixpkgs
 }:
 
 let
-  VidyoDesktopDeb = stdenv.mkDerivation {
+
+  inherit (nixpkgs) fetchurl buildFHSUserEnv makeWrapper dpkg alsaLib
+    alsaUtils alsaOss alsaTools alsaPlugins libidn utillinux mesa_glu qt4
+    zlib patchelf xorg;
+  inherit (nixpkgs.stdenv) mkDerivation;
+
+  VidyoDesktopDeb = mkDerivation {
     name = "VidyoDesktopDeb-123";
     builder = ./builder.sh;
     inherit dpkg;
