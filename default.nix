@@ -34,6 +34,11 @@ let
     gecko = callPackage ./pkgs/gecko { };
 
     servo = callPackage ./pkgs/servo { };
+
+    firefox-dev-bin = import ./pkgs/firefox-dev-bin rec {
+      inherit pkgs;
+      inherit (pkgs) callPackage;
+    };
   
     VidyoDesktop = callPackage ./pkgs/VidyoDesktop { };
 
