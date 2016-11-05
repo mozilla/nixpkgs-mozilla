@@ -1,3 +1,11 @@
+# This script extends nixpkgs with mozilla packages.
+#
+# First it imports the <nixpkgs> in the environment and depends on it
+# providing fetchFromGitHub and lib.importJSON.
+#
+# After that it loads a pinned release of nixos-16.09 and uses that as the
+# base for the rest of packaging. One can pass it's own pkgs attribute if
+# desired, probably in the context of hydra.
 let
   _pkgs = import <nixpkgs> {};
   _nixpkgs = _pkgs.fetchFromGitHub (_pkgs.lib.importJSON ./pkgs/nixpkgs.json);
@@ -26,7 +34,7 @@ let
       updateSrc = mozpkgs.lib.updateFromGitHub {
         owner = "NixOS";
         repo = "nixpkgs-channels";
-        branch = "nixos-unstable";
+        branch = "nixos-16.09";
         path = "pkgs/nixpkgs.json";
       };
     };
