@@ -1,6 +1,7 @@
-{ pkgs, callPackage }:
+{ pkgs }:
 let
-  ff = callPackage <nixpkgs/pkgs/applications/networking/browsers/firefox-bin> {
+  ff = pkgs.callPackage "${pkgs.path}/pkgs/applications/networking/browsers/firefox-bin" {
+    inherit (pkgs) stdenv;
     generated = import ./dev_sources.nix;
     gconf = pkgs.gnome2.GConf;
     inherit (pkgs.gnome2) libgnome libgnomeui;
