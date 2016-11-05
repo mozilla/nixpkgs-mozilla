@@ -9,6 +9,7 @@ Current packages
 
 - servo (https://github.com/servo/servo)
 - gecko (https://github.com/mozilla/gecko-dev)
+- firefox-dev-bin (`Firefox Developer Edition <https://www.mozilla.org/en-US/firefox/developer/>`)
 - VidyoDesktop ()
 
 
