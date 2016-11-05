@@ -19,7 +19,7 @@ let
 
   src =
     if servoSrc == null then
-      fetchFromGitHub (lib.importJSON ./source.json)
+      fetchFromGitHub (importJSON ./source.json)
     else
       servoSrc;
 
