@@ -4,9 +4,9 @@
 # ruby generate_sources_dev.rb > dev_sources.nix
 
 {
-  version = "51.0a2";
+  version = "52.0a2";
   sources = [
-    { url = "http://download-installer.cdn.mozilla.net/pub/firefox/nightly/2016/11/2016-11-05-00-40-17-mozilla-aurora/firefox-51.0a2.en-US.linux-i686.tar.bz2"; locale = "en-US"; arch = "linux-i686"; sha512 = "2a0a094c673455c562100bda7ea288463570907a7443316849785607a16bbd2658ef9fdc438f44eeceb9cc24157aa76ca7900c7fe6d4143a7c18bd8ccc2a6b1e"; }
-    { url = "http://download-installer.cdn.mozilla.net/pub/firefox/nightly/2016/11/2016-11-05-00-40-17-mozilla-aurora/firefox-51.0a2.en-US.linux-x86_64.tar.bz2"; locale = "en-US"; arch = "linux-x86_64"; sha512 = "66084233f082a11189be080b37cacf7431c36d9fba6d1d8229fb74ad205061d533c8543db7c668e6f630270f7865d46edc023aac29a30cc1a9e0e84a9aaf2bdd"; }
+    { url = "http://download-installer.cdn.mozilla.net/pub/firefox/nightly/2016/11/2016-11-20-00-40-06-mozilla-aurora/firefox-52.0a2.en-US.linux-i686.tar.bz2"; locale = "en-US"; arch = "linux-i686"; sha512 = "e20d4b07c9cb7e68f81e207dfd25f29688d7b9935cadcf200b14686efba52e83d6ddc72c9eca070262fb38d1d3e89e9d3d54751af04d897a1b8a770926c3f648"; }
+    { url = "http://download-installer.cdn.mozilla.net/pub/firefox/nightly/2016/11/2016-11-20-00-40-06-mozilla-aurora/firefox-52.0a2.en-US.linux-x86_64.tar.bz2"; locale = "en-US"; arch = "linux-x86_64"; sha512 = "2ee248232a098c980a4dc50d5a7362360661b945fc559d0ca60f64655aded36f6903bb1fffa50cdc2a8167d8f8e8fc10ec541e1968ddac716b5068a72542f5c3"; }
   ];
 }
