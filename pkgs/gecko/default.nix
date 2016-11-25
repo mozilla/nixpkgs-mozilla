@@ -1,5 +1,6 @@
 { geckoSrc ? null
 , lib
+, rustPlatform
 , nixpkgs
 }:
 
@@ -13,6 +14,7 @@ let
   inherit (nixpkgs.pythonPackages) setuptools;
   inherit (nixpkgs.stdenv) mkDerivation;
   inherit (nixpkgs.lib) importJSON optionals inNixShell;
+  inherit (rustPlatform.rust) rustc cargo;
 
   # Gecko sources are huge, we do not want to import them in the nix-store when
   # we use this expression for making a build environment.
@@ -56,6 +58,8 @@ in mkDerivation {
     gstreamer gst_plugins_base
 
     gtk3 glib gobjectIntrospection
+
+    rustc cargo
 
   ] ++ optionals inNixShell [
     valgrind gdb rr
