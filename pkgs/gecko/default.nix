@@ -10,7 +10,8 @@ let
   inherit (nixpkgs) fetchFromGitHub pythonFull which autoconf213
     perl unzip zip gnumake yasm pkgconfig xlibs gnome2 pango dbus dbus_glib
     alsaLib libpulseaudio gstreamer gst_plugins_base gtk3 glib
-    gobjectIntrospection valgrind gdb rr;
+    gobjectIntrospection git mercurial openssl cmake;
+  inherit (nixpkgs) valgrind gdb rr;
   inherit (nixpkgs.pythonPackages) setuptools;
   inherit (nixpkgs.stdenv) mkDerivation;
   inherit (nixpkgs.lib) importJSON optionals inNixShell;
@@ -60,6 +61,12 @@ in mkDerivation {
     gtk3 glib gobjectIntrospection
 
     rustc cargo
+
+    # "mach vendor rust" wants to list modified files by using the vcs.
+    git mercurial
+
+    # needed for compiling cargo-vendor and its dependencies
+    openssl cmake
 
   ] ++ optionals inNixShell [
     valgrind gdb rr
