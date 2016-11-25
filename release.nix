@@ -1,17 +1,18 @@
-{ nixpkgsSrc ? <nixpkgs>
+let
+  _pkgs = import <nixpkgs> {};
+  _nixpkgs = _pkgs.fetchFromGitHub (_pkgs.lib.importJSON ./pkgs/nixpkgs.json);
+in
+
+{ nixpkgsSrc ? _nixpkgs
 , supportedSystems ? [ "x86_64-linux" "i686-linux" /* "x86_64-darwin" */ ]
 }:
 
 let
-
-  # import current system nixpkgs's
-  pkgs' = import nixpkgsSrc {};
-
   # Make an attribute set for each system, the builder is then specialized to
   # use the selected system.
   forEachSystem = systems: builder:
-    pkgs'.lib.genAttrs systems (system:
-      builder (import nixpkgsSrc { inherit system; })
+    _pkgs.lib.genAttrs systems (system:
+      builder (import _nixpkgs { inherit system; })
     );
 
   # Make an attribute set for each compiler, the builder is then be specialized

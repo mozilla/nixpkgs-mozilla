@@ -3,7 +3,7 @@
 # First it imports the <nixpkgs> in the environment and depends on it
 # providing fetchFromGitHub and lib.importJSON.
 #
-# After that it loads a pinned release of nixos-16.09 and uses that as the
+# After that it loads a pinned release of nixos-unstable and uses that as the
 # base for the rest of packaging. One can pass it's own pkgs attribute if
 # desired, probably in the context of hydra.
 let
@@ -24,17 +24,13 @@ let
 
     lib = import ./pkgs/lib/default.nix { inherit mozpkgs; };
 
-    rustPlatform = pkgs.recurseIntoAttrs (
-      pkgs.makeRustPlatform
-      pkgs.rustUnstable
-      mozpkgs.rustPlatform
-    );
+    rustPlatform = pkgs.rustUnstable;
 
     nixpkgs = pkgs // {
       updateSrc = mozpkgs.lib.updateFromGitHub {
         owner = "NixOS";
         repo = "nixpkgs-channels";
-        branch = "nixos-16.09";
+        branch = "nixos-unstable";
         path = "pkgs/nixpkgs.json";
       };
     };
