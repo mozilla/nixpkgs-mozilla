@@ -17,7 +17,9 @@ let
   # Gecko sources are huge, we do not want to import them in the nix-store when
   # we use this expression for making a build environment.
   src =
-    if geckoSrc == null then
+    if inNixShell then
+      null
+    else if geckoSrc == null then
       fetchFromGitHub (importJSON ./source.json)
     else
       geckoSrc;
