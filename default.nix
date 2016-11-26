@@ -18,16 +18,16 @@ in
 
 let
   callPackage = (extra: pkgs.lib.callPackageWith
-    ({ inherit geckoSrc servoSrc; } // mozpkgs // extra)) {};
+    ({ inherit geckoSrc servoSrc; } // nixpkgs-mozilla // extra)) {};
 
-  mozpkgs = {
+  nixpkgs-mozilla = {
 
-    lib = import ./pkgs/lib/default.nix { inherit mozpkgs; };
+    lib = import ./pkgs/lib/default.nix { inherit nixpkgs-mozilla; };
 
     rustPlatform = pkgs.rustUnstable;
 
     nixpkgs = pkgs // {
-      updateSrc = mozpkgs.lib.updateFromGitHub {
+      updateSrc = nixpkgs-mozilla.lib.updateFromGitHub {
         owner = "NixOS";
         repo = "nixpkgs-channels";
         branch = "nixos-unstable";
@@ -39,12 +39,11 @@ let
 
     servo = callPackage ./pkgs/servo { };
 
-    firefox-dev-bin = callPackage ./pkgs/firefox-dev-bin {
-      inherit pkgs;
-    };
+    firefox-dev-bin = callPackage ./pkgs/firefox-bin/dev.nix { inherit pkgs; };
+    firefox-nightly-bin = callPackage ./pkgs/firefox-bin/nightly.nix { inherit pkgs; };
   
     VidyoDesktop = callPackage ./pkgs/VidyoDesktop { };
 
   };
 
-in mozpkgs
+in nixpkgs-mozilla

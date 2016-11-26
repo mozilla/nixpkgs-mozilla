@@ -1,13 +1,18 @@
-{ pkg ? null
-, pkgs ? null
+let
+  _pkgs = import <nixpkgs> {};
+  _nixpkgs = _pkgs.fetchFromGitHub (_pkgs.lib.importJSON ./pkgs/nixpkgs.json);
+in
+
+{ pkgs ? import _nixpkgs {}
+, pkg ? null
 }:
 
 let
-  pkgs_mozilla = import ./default.nix { inherit pkgs; };
+  nixpkgs-mozilla = import ./default.nix { inherit pkgs; };
   packages = if pkg == null
-    then pkgs_mozilla.lib.packagesToUpdate
-    else [(builtins.getAttr pkg pkgs_mozilla).updateSrc];
-in pkgs_mozilla.nixpkgs.stdenv.mkDerivation {
+    then nixpkgs-mozilla.lib.packagesToUpdate
+    else [(builtins.getAttr pkg nixpkgs-mozilla).updateSrc];
+in nixpkgs-mozilla.nixpkgs.stdenv.mkDerivation {
   name = "update-nixpkgs-mozilla";
   buildCommand = ''
     echo "+--------------------------------------------------------+"

@@ -15,7 +15,7 @@ month_uri = year_uri.merge(
   open(year_uri).read.scan(/#{year_uri.path}\d{2}\//).last
 )
 day_uri = month_uri.merge(
-  open(month_uri).read.scan(/#{month_uri.path}[^\/]+aurora\//).last
+  open(month_uri).read.scan(/#{month_uri.path}[^\/]+mozilla-aurora\//).last
 )
 base_url = day_uri
 
