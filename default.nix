@@ -18,7 +18,7 @@ in
 
 let
   callPackage = (extra: pkgs.lib.callPackageWith
-    ({ inherit geckoSrc servoSrc; } // self // pkgs // extra)) {};
+    ({ inherit geckoSrc servoSrc; } // self // extra)) {};
 
   self = {
 

@@ -26,11 +26,10 @@ let
     else
       geckoSrc;
 
-  # TODO: figure out version from geckoSrc
-  version = "latest";
+  version = "HEAD"; # XXX: builtins.readFile "${src}/browser/config/version.txt";
 
 in mkDerivation {
-  name = "firefox-${version}";
+  name = "gecko-dev-${version}";
   inherit src;
   buildInputs = [
 
