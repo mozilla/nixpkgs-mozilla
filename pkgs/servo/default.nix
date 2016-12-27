@@ -1,21 +1,21 @@
 { servoSrc ? null
 , lib
 , rustPlatform
-, nixpkgs
+, pkgs
 }:
 
 let
 
   inherit (lib) updateFromGitHub;
-  inherit (nixpkgs) fetchFromGitHub curl dbus fontconfig freeglut freetype
+  inherit (pkgs) fetchFromGitHub curl dbus fontconfig freeglut freetype
     gperf libxmi llvm mesa mesa_glu openssl pkgconfig makeWrapper writeText
     xorg;
-  inherit (nixpkgs.stdenv) mkDerivation;
-  inherit (nixpkgs.lib) importJSON;
+  inherit (pkgs.stdenv) mkDerivation;
+  inherit (pkgs.lib) importJSON;
   inherit (rustPlatform) buildRustPackage;
   inherit (rustPlatform.rust) rustc cargo;
 
-  pythonPackages = nixpkgs.python3Packages;
+  pythonPackages = pkgs.python3Packages;
 
   src =
     if servoSrc == null then
@@ -93,7 +93,7 @@ in mkDerivation rec {
     # to provide a path
     export LD_LIBRARY_PATH=${xorgCompositorLibs}:$LD_LIBRARY_PATH
   '';
-  passthru.updateSrc = updateFromGitHub {
+  passthru.updateScript = updateFromGitHub {
     owner = "servo";
     repo = "servo";
     branch = "master";

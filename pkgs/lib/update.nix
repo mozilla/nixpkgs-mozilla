@@ -1,16 +1,8 @@
-{ nixpkgs-mozilla }:
+{ pkgs }:
 
 let
-  inherit (nixpkgs-mozilla.nixpkgs) cacert nix-prefetch-scripts jq curl gnused
-    gnugrep coreutils;
+  inherit (pkgs) cacert nix-prefetch-scripts jq curl gnused gnugrep coreutils;
 in {
-
-  packagesToUpdate = map
-    (pkg: pkg.updateSrc)
-    (builtins.filter
-      (pkg: builtins.hasAttr "updateSrc" pkg)
-      (builtins.attrValues nixpkgs-mozilla)
-    );
 
   updateFromGitHub = { owner, repo, path, branch }: ''
     export SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt

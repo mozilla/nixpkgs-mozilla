@@ -1,12 +1,12 @@
-{ nixpkgs
+{ pkgs
 }:
 
 let
 
-  inherit (nixpkgs) fetchurl buildFHSUserEnv makeWrapper dpkg alsaLib
+  inherit (pkgs) fetchurl buildFHSUserEnv makeWrapper dpkg alsaLib
     alsaUtils alsaOss alsaTools alsaPlugins libidn utillinux mesa_glu qt4
     zlib patchelf xorg;
-  inherit (nixpkgs.stdenv) mkDerivation;
+  inherit (pkgs.stdenv) mkDerivation;
 
   VidyoDesktopDeb = mkDerivation {
     name = "VidyoDesktopDeb-123";

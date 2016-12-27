@@ -1,20 +1,20 @@
 { geckoSrc ? null
 , lib
-, nixpkgs
+, pkgs
 }:
 
 let
 
   inherit (lib) updateFromGitHub;
-  inherit (nixpkgs) fetchFromGitHub pythonFull which autoconf213
+  inherit (pkgs) fetchFromGitHub pythonFull which autoconf213
     perl unzip zip gnumake yasm pkgconfig xlibs gnome2 pango dbus dbus_glib
     alsaLib libpulseaudio gstreamer gst_plugins_base gtk3 glib
     gobjectIntrospection git mercurial openssl cmake;
-  inherit (nixpkgs) valgrind gdb rr;
-  inherit (nixpkgs.pythonPackages) setuptools;
-  inherit (nixpkgs.stdenv) mkDerivation;
-  inherit (nixpkgs.lib) importJSON optionals inNixShell;
-  inherit (nixpkgs.rust) rustc cargo;
+  inherit (pkgs) valgrind gdb rr;
+  inherit (pkgs.pythonPackages) setuptools;
+  inherit (pkgs.stdenv) mkDerivation;
+  inherit (pkgs.lib) importJSON optionals inNixShell;
+  inherit (pkgs.rust) rustc cargo;
 
   # Gecko sources are huge, we do not want to import them in the nix-store when
   # we use this expression for making a build environment.
@@ -111,7 +111,7 @@ in mkDerivation {
   shellHook = ''
     export MOZBUILD_STATE_PATH=$PWD/.mozbuild
   '';
-  passthru.updateSrc = updateFromGitHub {
+  passthru.updateScript = updateFromGitHub {
     owner = "mozilla";
     repo = "gecko-dev";
     branch = "master";
