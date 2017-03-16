@@ -1,20 +1,18 @@
-{ geckoSrc ? null
-, lib
-, pkgs
+{ geckoSrc ? null, lib
+, stdenv, fetchFromGitHub, pythonFull, which, autoconf213
+, perl, unzip, zip, gnumake, yasm, pkgconfig, xlibs, gnome2, pango
+, dbus, dbus_glib, alsaLib, libpulseaudio, gstreamer, gst_plugins_base
+, gtk3, glib, gobjectIntrospection, git, mercurial, openssl, cmake, procps
+, libnotify
+, valgrind, gdb, rr
+, setuptools
+, rust # rust & cargo bundled. (otheriwse use pkgs.rust.{rustc,cargo})
+, buildFHSUserEnv # Build a FHS environment with all Gecko dependencies.
 }:
 
 let
 
-  inherit (lib) updateFromGitHub;
-  inherit (pkgs) fetchFromGitHub pythonFull which autoconf213
-    perl unzip zip gnumake yasm pkgconfig xlibs gnome2 pango dbus dbus_glib
-    alsaLib libpulseaudio gstreamer gst_plugins_base gtk3 glib
-    gobjectIntrospection git mercurial openssl cmake;
-  inherit (pkgs) valgrind gdb rr;
-  inherit (pkgs.pythonPackages) setuptools;
-  inherit (pkgs.stdenv) mkDerivation;
-  inherit (pkgs.lib) importJSON optionals inNixShell;
-  inherit (pkgs.rust) rustc cargo;
+  inherit (lib) updateFromGitHub importJSON optionals inNixShell;
 
   # Gecko sources are huge, we do not want to import them in the nix-store when
   # we use this expression for making a build environment.
@@ -28,9 +26,6 @@ let
 
   version = "HEAD"; # XXX: builtins.readFile "${src}/browser/config/version.txt";
 
-in mkDerivation {
-  name = "gecko-dev-${version}";
-  inherit src;
   buildInputs = [
 
     # Expected by "mach"
@@ -58,7 +53,10 @@ in mkDerivation {
 
     gtk3 glib gobjectIntrospection
 
-    rustc cargo
+    rust
+
+    # mach mochitest
+    procps
 
     # "mach vendor rust" wants to list modified files by using the vcs.
     git mercurial
@@ -66,9 +64,40 @@ in mkDerivation {
     # needed for compiling cargo-vendor and its dependencies
     openssl cmake
 
+    # Useful for getting notification at the end of the build.
+    libnotify
+
   ] ++ optionals inNixShell [
     valgrind gdb rr
   ];
+
+  shellHook = ''
+    export MOZBUILD_STATE_PATH=$PWD/.mozbuild
+  '';
+
+  # propagatedBuildInput should already have applied the "lib.chooseDevOutputs"
+  # on the propagated build inputs.
+  pullAllInputs = inputs:
+    inputs ++ lib.concatMap (i: pullAllInputs i.propagatedNativeBuildInputs) inputs;
+
+  fhs = buildFHSUserEnv {
+    name = "gecko-deps-fhs";
+    targetPkgs = _: pullAllInputs (lib.chooseDevOutputs (buildInputs ++ [ stdenv.cc ]));
+    multiPkgs = null;
+    extraOutputsToInstall = [ "share" ];
+    profile = ''
+      # build-fhs-userenv/env.nix adds it, but causes 'ls' to SEGV.
+      unset LD_LIBRARY_PATH;
+      export IN_NIX_SHELL=1
+      export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig
+      ${shellHook}
+    '';
+  };
+in
+
+stdenv.mkDerivation {
+  name = "gecko-dev-${version}";
+  inherit src buildInputs shellHook;
 
   # Useful for debugging this Nix expression.
   tracePhases = true;
@@ -107,13 +136,11 @@ in mkDerivation {
   doCheck = false;
   doInstallCheck = false;
 
-  shellHook = ''
-    export MOZBUILD_STATE_PATH=$PWD/.mozbuild
-  '';
   passthru.updateScript = updateFromGitHub {
     owner = "mozilla";
     repo = "gecko-dev";
     branch = "master";
     path = "pkgs/gecko/source.json";
   };
+  passthru.fhs = fhs; # gecko.x86_64-linux.gcc.fhs.env
 }
