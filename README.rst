@@ -15,14 +15,12 @@ Current packages
 Rust overlay
 ------------
 
+**NOTE:** Nix overlays only works in unstable and will be in the next (17.03) release.
+
 A nixpkgs overlay is provided to contains all of the latest rust releases.
 
 To use the rust overlay run the ``./rust-overlay-install.sh`` command. It will
-link the current ``./rust-overlay.nix`` into you ``~/.nixpkgs/overlays`` folders.
-
-In some versions of nixpkgs you also have to set
-
-``export NIX_PATH=$NIX_PATH:nixpkgs-overlays=$HOME/.nixpkgs/overlays``
+link the current ``./rust-overlay.nix`` into you ``~/.config/nixpkgs/overlays`` folders.
 
 Once this is done, use ``nix-env -iA nixpkgs.rustChannels.nightly.rust`` for
 example. Replace the ``nixpkgs.`` prefix with ``nixos.`` on NixOS.
