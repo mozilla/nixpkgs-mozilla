@@ -38,6 +38,37 @@ let
     "x86_64-freebsd"  = "x86_64-unknown-freebsd";
   }.${system} or (throw "Rust overlay does not support ${system} yet.");
 
+  getExtensions = pkgs: pkgname: stdenv:
+    let
+      pkg = pkgs.${pkgname};
+      srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
+      extensions = srcInfo.extensions or [];
+      extensionNamesList =
+        builtins.map (pkg: pkg.pkg) (builtins.filter (pkg:  (pkg.target == (hostTripleOf stdenv.system)) || (pkg.target == "*")) extensions);
+    in
+      extensionNamesList;
+
+  getFetchUrl = pkgs: pkgname: stdenv: fetchurl:
+    let
+      pkg = pkgs.${pkgname};
+      srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
+    in
+      (fetchurl { url = srcInfo.url; sha256 = srcInfo.hash; });
+
+  getSrcs = pkgs: pkgname: extensions: stdenv: fetchurl:
+    with super.lib;
+    let
+      availableExtensions = getExtensions pkgs pkgname stdenv;
+      missingExtensions = subtractLists availableExtensions extensions;
+      extensionsToInstall =
+        if missingExtensions == [] then extensions else throw ''
+          While compiling ${pkgname}: the extension ${head missingExtensions} is not available.
+          Select extensions from the following list:
+          ${concatStringsSep "\n" availableExtensions}'';
+      pkgsToInstall = [pkgname] ++ extensionsToInstall;
+    in
+      (builtins.map (pkg: (getFetchUrl pkgs pkg stdenv fetchurl)) pkgsToInstall);
+
   # Manifest files are organized as follow:
   # { date = "2017-03-03";
   #   pkg.cargo.version= "0.18.0-nightly (5db6d64 2017-03-03)";
@@ -51,43 +82,49 @@ let
   # The packages available usually are:
   #   cargo, rust-analysis, rust-docs, rust-src, rust-std, rustc, and
   #   rust, which aggregates them in one package.
-  fromManifest = manifest: {stdenv, fetchurl, patchelf}:
+  fromManifest = manifest: { stdenv, fetchurl, patchelf }:
     let pkgs = fromTOML (builtins.readFile (builtins.fetchurl manifest)); in
     with super.lib; flip mapAttrs pkgs.pkg (name: pkg:
-      let
-        srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
-        version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
-        version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
-      in
-        stdenv.mkDerivation {
-          name = name + "-" + version;
-          src = fetchurl {
-            url = srcInfo.url;
-            sha256 = srcInfo.hash;
-          };
-          # (@nbp) TODO: Check on Windows and Mac.
-          # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
-          installPhase = ''
-            CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
+      super.makeOverridable ({extensions}:
+        let
+          version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
+          version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
+          srcs = getSrcs pkgs.pkg name extensions stdenv fetchurl;
+        in
+          stdenv.mkDerivation {
+            name = name + "-" + version;
+            inherit srcs;
+            sourceRoot = ".";
+            # (@nbp) TODO: Check on Windows and Mac.
+            # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
+            installPhase = ''
+              for i in * ; do
+                if [ -d "$i" ]; then
+                  cd $i
+                  CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
+                  cd ..
+                fi
+              done
 
-            setInterpreter() {
-              local dir="$1"
-              [ -e "$dir" ] || return 0
+              setInterpreter() {
+                local dir="$1"
+                [ -e "$dir" ] || return 0
 
-              header "Patching interpreter of ELF executables and libraries in $dir"
-              local i
-              while IFS= read -r -d ''$'\0' i; do
-                if [[ "$i" =~ .build-id ]]; then continue; fi
-                if ! isELF "$i"; then continue; fi
-                echo "setting interpreter of $i"
-                patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" "$i" || true
-              done < <(find "$dir" -type f -print0)
-            }
+                header "Patching interpreter of ELF executables and libraries in $dir"
+                local i
+                while IFS= read -r -d ''$'\0' i; do
+                  if [[ "$i" =~ .build-id ]]; then continue; fi
+                  if ! isELF "$i"; then continue; fi
+                  echo "setting interpreter of $i"
+                  patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" "$i" || true
+                done < <(find "$dir" -type f -print0)
+              }
 
-            setInterpreter $out
-          '';
-        }
-      );
+              setInterpreter $out
+            '';
+          }
+      ) { extensions = []; }
+    );
 
 in
 
