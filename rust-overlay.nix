@@ -38,27 +38,37 @@ let
     "x86_64-freebsd"  = "x86_64-unknown-freebsd";
   }.${system} or (throw "Rust overlay does not support ${system} yet.");
 
-  getExtensions = pkgs: pkgname: stdenv:
+  getExtensions = pkgs: pkgname: targets: stdenv:
+    with super.lib;
     let
       pkg = pkgs.${pkgname};
       srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
       extensions = srcInfo.extensions or [];
       extensionNamesList =
-        builtins.map (pkg: pkg.pkg) (builtins.filter (pkg:  (pkg.target == (hostTripleOf stdenv.system)) || (pkg.target == "*")) extensions);
+        builtins.map (pkg: pkg.pkg) (builtins.filter (pkg:  (any (target: pkg.target == target) targets) || (pkg.target == "*")) extensions);
     in
       extensionNamesList;
 
-  getFetchUrl = pkgs: pkgname: stdenv: fetchurl:
-    let
-      pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
-    in
-      (fetchurl { url = srcInfo.url; sha256 = srcInfo.hash; });
-
-  getSrcs = pkgs: pkgname: extensions: stdenv: fetchurl:
+  getFetchUrl = pkgs: pkgname: name: pkgTargets: extTargets: fetchurl:
     with super.lib;
     let
-      availableExtensions = getExtensions pkgs pkgname stdenv;
+      targets = if pkgname == name then pkgTargets else extTargets;
+      pkg = pkgs.${name};
+      srcInfo = target: pkg.target.${target} or {};
+      srcInfoUniversal = srcInfo "*";
+      srcInfoCheck = target:
+        if (srcInfo target) == {} then throw ''
+          While compiling ${pkgname}: the package/extension ${name} is not available for the target ${target}.''
+        else
+          srcInfo target;
+      srcInfos = if srcInfoUniversal == {} then (builtins.map (target: srcInfoCheck target) targets) else [ srcInfoUniversal ];
+    in
+      (builtins.map (info: (fetchurl { url = info.url; sha256 = info.hash; })) srcInfos);
+
+  getSrcs = pkgs: pkgname: extensions: targets: extTargets: stdenv: fetchurl:
+    with super.lib;
+    let
+      availableExtensions = getExtensions pkgs pkgname extTargets stdenv;
       missingExtensions = subtractLists availableExtensions extensions;
       extensionsToInstall =
         if missingExtensions == [] then extensions else throw ''
@@ -67,7 +77,7 @@ let
           ${concatStringsSep "\n" availableExtensions}'';
       pkgsToInstall = [pkgname] ++ extensionsToInstall;
     in
-      (builtins.map (pkg: (getFetchUrl pkgs pkg stdenv fetchurl)) pkgsToInstall);
+      (concatLists (builtins.map (pkg: (getFetchUrl pkgs pkgname pkg targets extTargets fetchurl)) pkgsToInstall));
 
   # Manifest files are organized as follow:
   # { date = "2017-03-03";
@@ -85,11 +95,13 @@ let
   fromManifest = manifest: { stdenv, fetchurl, patchelf }:
     let pkgs = fromTOML (builtins.readFile (builtins.fetchurl manifest)); in
     with super.lib; flip mapAttrs pkgs.pkg (name: pkg:
-      super.makeOverridable ({extensions}:
+      super.makeOverridable ({extensions, crossTargets, extCrossTargets}:
         let
+          targets = [(hostTripleOf stdenv.system)] ++ crossTargets;
+          extTargets = [(hostTripleOf stdenv.system)] ++ extCrossTargets;
           version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
           version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
-          srcs = getSrcs pkgs.pkg name extensions stdenv fetchurl;
+          srcs = getSrcs pkgs.pkg name extensions targets extTargets stdenv fetchurl;
         in
           stdenv.mkDerivation {
             name = name + "-" + version;
@@ -123,7 +135,7 @@ let
               setInterpreter $out
             '';
           }
-      ) { extensions = []; }
+      ) { extensions = []; crossTargets = []; extCrossTargets = []; }
     );
 
 in
