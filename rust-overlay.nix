@@ -101,6 +101,7 @@ let
               for i in * ; do
                 if [ -d "$i" ]; then
                   cd $i
+                  patchShebangs install.sh
                   CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
                   cd ..
                 fi
