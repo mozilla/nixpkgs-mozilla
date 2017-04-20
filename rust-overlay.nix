@@ -2,8 +2,9 @@
 # and cargo.
 self: super:
 
-with import ./lib/parseTOML.nix;
 let
+  fromTOML = (import ./lib/parseTOML.nix).fromTOML;
+
   # See https://github.com/rust-lang-nursery/rustup.rs/blob/master/src/rustup-dist/src/dist.rs
   defaultDistRoot = "https://static.rust-lang.org";
   manifest_v1_url = {
@@ -56,8 +57,8 @@ let
       (fetchurl { url = srcInfo.url; sha256 = srcInfo.hash; });
 
   getSrcs = pkgs: pkgname: extensions: stdenv: fetchurl:
-    with super.lib;
     let
+      subtractLists = super.lib.subtractLists;
       availableExtensions = getExtensions pkgs pkgname stdenv;
       missingExtensions = subtractLists availableExtensions extensions;
       extensionsToInstall =
@@ -83,9 +84,14 @@ let
   #   cargo, rust-analysis, rust-docs, rust-src, rust-std, rustc, and
   #   rust, which aggregates them in one package.
   fromManifest = manifest: { stdenv, fetchurl, patchelf }:
-    let pkgs = fromTOML (builtins.readFile (builtins.fetchurl manifest)); in
-    with super.lib; flip mapAttrs pkgs.pkg (name: pkg:
-      super.makeOverridable ({extensions}:
+    let 
+      pkgs = fromTOML (builtins.readFile (builtins.fetchurl manifest));
+      flip = super.lib.flip;
+      mapAttrs = super.lib.mapAttrs;
+      makeOverridable = super.makeOverridable;
+    in
+    flip mapAttrs pkgs.pkg (name: pkg:
+      makeOverridable ({extensions}:
         let
           version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
           version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
