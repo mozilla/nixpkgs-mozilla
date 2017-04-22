@@ -58,7 +58,7 @@ let
 
   getSrcs = pkgs: pkgname: extensions: stdenv: fetchurl:
     let
-      subtractLists = super.lib.subtractLists;
+      inherit (super.lib) subtractLists;
       availableExtensions = getExtensions pkgs pkgname stdenv;
       missingExtensions = subtractLists availableExtensions extensions;
       extensionsToInstall =
@@ -84,11 +84,10 @@ let
   #   cargo, rust-analysis, rust-docs, rust-src, rust-std, rustc, and
   #   rust, which aggregates them in one package.
   fromManifest = manifest: { stdenv, fetchurl, patchelf }:
-    let 
+    let
+      inherit (super) makeOverridable;
+      inherit (super.lib) flip mapAttrs;
       pkgs = fromTOML (builtins.readFile (builtins.fetchurl manifest));
-      flip = super.lib.flip;
-      mapAttrs = super.lib.mapAttrs;
-      makeOverridable = super.makeOverridable;
     in
     flip mapAttrs pkgs.pkg (name: pkg:
       makeOverridable ({extensions}:
