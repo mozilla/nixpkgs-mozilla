@@ -58,7 +58,8 @@ let
 
   getSrcs = pkgs: pkgname: extensions: stdenv: fetchurl:
     let
-      inherit (super.lib) subtractLists;
+      inherit (builtins) head;
+      inherit (super.lib) subtractLists concatStringsSep;
       availableExtensions = getExtensions pkgs pkgname stdenv;
       missingExtensions = subtractLists availableExtensions extensions;
       extensionsToInstall =
@@ -85,6 +86,7 @@ let
   #   rust, which aggregates them in one package.
   fromManifest = manifest: { stdenv, fetchurl, patchelf }:
     let
+      inherit (builtins) elemAt;
       inherit (super) makeOverridable;
       inherit (super.lib) flip mapAttrs;
       pkgs = fromTOML (builtins.readFile (builtins.fetchurl manifest));
