@@ -15,7 +15,7 @@ Current packages
 Rust overlay
 ------------
 
-**NOTE:** Nix overlays only works in unstable and will be in the next (17.03) release.
+**NOTE:** Nix overlays only works on up-to-date versions of NixOS/nixpkgs, starting from 17.03.
 
 A nixpkgs overlay is provided to contains all of the latest rust releases.
 
