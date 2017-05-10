@@ -84,12 +84,12 @@ let
   # The packages available usually are:
   #   cargo, rust-analysis, rust-docs, rust-src, rust-std, rustc, and
   #   rust, which aggregates them in one package.
-  fromManifest = manifest: { stdenv, fetchurl, patchelf }:
+  fromManifestFile = manifest: { stdenv, fetchurl, patchelf }:
     let
       inherit (builtins) elemAt;
       inherit (super) makeOverridable;
       inherit (super.lib) flip mapAttrs;
-      pkgs = fromTOML (builtins.readFile (builtins.fetchurl manifest));
+      pkgs = fromTOML (builtins.readFile manifest);
     in
     flip mapAttrs pkgs.pkg (name: pkg:
       makeOverridable ({extensions}:
@@ -134,13 +134,16 @@ let
       ) { extensions = []; }
     );
 
+  fromManifest = manifest: { stdenv, fetchurl, patchelf }:
+    fromManifestFile (builtins.fetchurl manifest) { inherit stdenv fetchurl patchelf; };
+
 in
 
 {
   lib = super.lib // {
     inherit fromTOML;
     rustLib = {
-      inherit fromManifest manifest_v2_url ;
+      inherit fromManifest fromManifestFile manifest_v2_url;
     };
   };
 
@@ -164,4 +167,3 @@ in
     };
   };
 }
-
