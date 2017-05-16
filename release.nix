@@ -8,29 +8,19 @@ in
 }:
 
 let
-  # Make an attribute set for each system, the builder is then specialized to
-  # use the selected system.
-  forEachSystem = systems: builder:
-    _pkgs.lib.genAttrs systems (system:
-      builder (import _nixpkgs { inherit system; })
-    );
-
-  # Make an attribute set for each compiler, the builder is then be specialized
-  # to use the selected compiler.
-  forEachCompiler = compilers: builder: pkgs:
-    with pkgs;
-    let
-
+  compilersOverlay = compilers: self: super: with self;
+  let
     # Override, in a non-recursive matter to avoid recompilations, the standard
     # environment used for building packages.
-    builderWithStdenv = stdenv: builder (pkgs // { inherit stdenv; });
+    builderWithStdenv = stdenv: builder (super // { inherit stdenv; });
 
-    noSysDirs = (system != "x86_64-darwin"
-               && system != "x86_64-freebsd" && system != "i686-freebsd"
-               && system != "x86_64-kfreebsd-gnu");
+    noSysDirs = (super.stdenv.system != "x86_64-darwin"
+               && super.stdenv.system != "x86_64-freebsd"
+               && super.stdenv.system != "i686-freebsd"
+               && super.stdenv.system != "x86_64-kfreebsd-gnu");
     crossSystem = null;
 
-    gcc473 = wrapCC (callPackage ./pkgs/gcc-4.7 {
+    gcc473 = wrapCC (super.callPackage ./pkgs/gcc-4.7 {
       inherit noSysDirs;
       texinfo = texinfo4;
       # I'm not sure if profiling with enableParallelBuilding helps a lot.
@@ -55,9 +45,10 @@ let
     maybeWrapClang = cc:
       if cc ? clang then clangWrapCC cc
       else cc;
+
     clangWrapCC = llvmPackages:
       let libcxx =
-        pkgs.lib.overrideDerivation llvmPackages.libcxx (drv: {
+        lib.overrideDerivation llvmPackages.libcxx (drv: {
           # https://bugzilla.mozilla.org/show_bug.cgi?id=1277619
           # https://llvm.org/bugs/show_bug.cgi?id=14435
           patches = drv.patches ++ [ ./pkgs/clang/bug-14435.patch ];
@@ -105,16 +96,48 @@ let
       });
     };
 
-  in builtins.listToAttrs (map (x: { name = x; value = buildWithCompiler (builtins.getAttr x compilersByName); }) compilers);
+  in {
+    customStdenvs = builtins.listToAttrs (map (x: { name = x; value = buildWithCompiler (builtins.getAttr x compilersByName); }) compilers);
+  };
+
+in
+
+let
+  # Make an attribute set for each system, the builder is then specialized to
+  # use the selected system.
+  forEachSystem = systems: builder /* system -> stdenv -> pkgs */:
+    _pkgs.lib.genAttrs systems (system:
+      builder (import _nixpkgs { inherit system; })
+    );
+
+  # Make an attribute set for each compiler, the builder is then be specialized
+  # to use the selected compiler.
+  forEachCompiler = compilers: builder: system:
+    builtins.listToAttrs (map (compiler: {
+      name = compiler;
+      value = builder compiler system;
+    }) compilers);
+
+
+  builder = name: compiler: system:
+    (import ./default.nix {
+      inherit system;
+      overlays = [
+        (compilersOverlay geckoCompilers)
+        # Use an overlay to select which compiler we want to compile with.
+        (self: super: if compiler != null then {} else {
+          "${name}" = super."${name}".override {
+            stdenv = self.customStdenvs."${compiler}";
+          };
+        })
+      ];
+    })."${name}";
 
   build = name: { systems ? supportedSystems, compilers ? null }:
     forEachSystem systems (
-      let 
-        builder = pkgs: builtins.getAttr name (import ./default.nix { inherit pkgs; });
-      in
-        if compilers == null
-        then builder
-        else forEachCompiler compilers builder
+      if compilers == null
+      then builder name null
+      else forEachCompiler compilers (builder name)
     );
 
   geckoCompilers = [
