@@ -39,27 +39,59 @@ let
     "x86_64-freebsd"  = "x86_64-unknown-freebsd";
   }.${system} or (throw "Rust overlay does not support ${system} yet.");
 
+  getComponentsWithFixedPlatform = pkgs: pkgname: stdenv:
+    let
+      pkg = pkgs.${pkgname};
+      srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
+      components = srcInfo.components or [];
+      componentNamesList =
+        builtins.map (pkg: pkg.pkg) (builtins.filter (pkg: (pkg.target != "*")) components);
+    in
+      componentNamesList;
+
   getExtensions = pkgs: pkgname: stdenv:
     let
+      inherit (super.lib) unique;
       pkg = pkgs.${pkgname};
       srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
       extensions = srcInfo.extensions or [];
-      extensionNamesList =
-        builtins.map (pkg: pkg.pkg) (builtins.filter (pkg:  (pkg.target == (hostTripleOf stdenv.system)) || (pkg.target == "*")) extensions);
+      extensionNamesList = unique (builtins.map (pkg: pkg.pkg) extensions);
     in
       extensionNamesList;
 
-  getFetchUrl = pkgs: pkgname: stdenv: fetchurl:
+  hasTarget = pkgs: pkgname: target:
+    let
+      inherit (super.lib) hasAttrByPath;
+    in
+      (hasAttrByPath [ target ] pkgs.${pkgname}.target);
+
+  getTuples = pkgs: name: targets: builtins.map (target: { inherit name; inherit target; }) (builtins.filter (target: hasTarget pkgs name target) targets);
+
+  # Returns the { name, target } tuples for one package.
+  # If the package has components and these components support one of the targets, we add the components to the returning list with all supported targets.
+  # For the given pkgname, we only check the [ host "*" ] target list, because we don't want to install package for other architectures.
+  getTargetPkgTuples = pkgs: pkgname: targets: stdenv:
+    let
+      inherit (super.lib) intersectLists;
+      pkg = pkgs.${pkgname};
+      components = getComponentsWithFixedPlatform pkgs pkgname stdenv;
+      extensions = getExtensions pkgs pkgname stdenv;
+      compExtIntersect = intersectLists components extensions;
+      tuples = (getTuples pkgs pkgname [ "*" (hostTripleOf stdenv.system)]) ++ (builtins.map (name: getTuples pkgs name targets) compExtIntersect);
+    in
+      tuples;
+
+  getFetchUrl = pkgs: pkgname: target: stdenv: fetchurl:
     let
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
+      srcInfo = pkg.target.${target};
     in
       (fetchurl { url = srcInfo.url; sha256 = srcInfo.hash; });
 
-  getSrcs = pkgs: pkgname: extensions: stdenv: fetchurl:
+  getSrcs = pkgs: pkgname: targets: extensions: stdenv: fetchurl:
     let
-      inherit (builtins) head;
-      inherit (super.lib) subtractLists concatStringsSep;
+      inherit (builtins) head map;
+      inherit (super.lib) subtractLists concatStringsSep flatten unique remove;
       availableExtensions = getExtensions pkgs pkgname stdenv;
       missingExtensions = subtractLists availableExtensions extensions;
       extensionsToInstall =
@@ -68,8 +100,13 @@ let
           Select extensions from the following list:
           ${concatStringsSep "\n" availableExtensions}'';
       pkgsToInstall = [pkgname] ++ extensionsToInstall;
+      pkgsTuples = flatten(map (name: getTargetPkgTuples pkgs name targets stdenv) pkgsToInstall);
+      missingTargets = subtractLists (map (tuple: tuple.target) pkgsTuples) (remove "*" targets);
+      pkgsTuplesToInstall =
+        if missingTargets == [] then pkgsTuples else throw ''
+          While compiling ${pkgname}: the target ${head missingTargets} is not available for any package.'';
     in
-      (builtins.map (pkg: (getFetchUrl pkgs pkg stdenv fetchurl)) pkgsToInstall);
+      map (tuple: (getFetchUrl pkgs tuple.name tuple.target stdenv fetchurl)) pkgsTuplesToInstall;
 
   # Manifest files are organized as follow:
   # { date = "2017-03-03";
@@ -92,11 +129,12 @@ let
       pkgs = fromTOML (builtins.readFile manifest);
     in
     flip mapAttrs pkgs.pkg (name: pkg:
-      makeOverridable ({extensions}:
+      makeOverridable ({extensions, targets}:
         let
           version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
           version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
-          srcs = getSrcs pkgs.pkg name extensions stdenv fetchurl;
+          allTargets = [ "*" (hostTripleOf stdenv.system) ] ++ targets;
+          srcs = getSrcs pkgs.pkg name allTargets extensions stdenv fetchurl;
         in
           stdenv.mkDerivation {
             name = name + "-" + version;
@@ -131,7 +169,7 @@ let
               setInterpreter $out
             '';
           }
-      ) { extensions = []; }
+      ) { extensions = []; targets = []; }
     );
 
   fromManifest = manifest: { stdenv, fetchurl, patchelf }:
