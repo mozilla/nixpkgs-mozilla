@@ -103,57 +103,17 @@ let
             inherit srcs;
             sourceRoot = ".";
             # (@nbp) TODO: Check on Windows and Mac.
+            # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
             installPhase = ''
-              handleEtc() {
-                local subdir="$1"
-                local oldIFS="$IFS"
-
-                # Directories we are aware of, given as substitution lists
-                for paths in \
-                  "etc/bash_completion.d","share/bash_completion/completions";
-                  do
-
-                  IFS=","
-                  set -- $paths
-                  IFS="$oldIFS"
-
-                  local orig_path="$1"
-                  local wanted_path="$2"
-
-                  # Rename the files
-                  if [ -d "./$subdir/$orig_path" ]; then
-                    mkdir -p "$(dirname ./"$subdir"/"$wanted_path")"
-                    mv -v "./"$subdir"/"$orig_path"" "./"$subdir"/"$wanted_path""
-                  fi
-
-                  # Replace all occurences in the manifest file
-                  substituteInPlace "$subdir"/manifest.in \
-                    --replace "$orig_path" "$wanted_path"
-
-                  # Fail explicitly if etc is not empty so we can add it to the list and/or report it upstream
-                  rmdir ./$subdir/etc || {
-                    echo Installer tries to install to /etc:
-                    find ./$subdir/etc
-                    exit 1
-                  }
-                done
-              }
-
               for i in * ; do
                 if [ -d "$i" ]; then
                   cd $i
-
-                  for etc in */etc; do
-                    handleEtc "$(dirname "$etc")"
-                  done
-
                   patchShebangs install.sh
                   CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
                   cd ..
                 fi
               done
 
-              # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
               setInterpreter() {
                 local dir="$1"
                 [ -e "$dir" ] || return 0
@@ -169,6 +129,45 @@ let
               }
 
               setInterpreter $out
+            '';
+
+            postFixup = ''
+              # Function moves well-known files from etc/
+              handleEtc() {
+                local oldIFS="$IFS"
+
+                # Directories we are aware of, given as substitution lists
+                for paths in \
+                  "etc/bash_completion.d","share/bash_completion/completions";
+                  do
+
+                  IFS=","
+                  set -- $paths
+                  IFS="$oldIFS"
+
+                  local orig_path="$1"
+                  local wanted_path="$2"
+
+                  # Rename the files
+                  if [ -d ./"$orig_path" ]; then
+                    mkdir -p "$(dirname ./"$wanted_path")"
+                  fi
+                  mv -v ./"$orig_path" ./"$wanted_path"
+
+                  # Fail explicitly if etc is not empty so we can add it to the list and/or report it upstream
+                  rmdir ./etc || {
+                    echo Installer tries to install to /etc:
+                    find ./etc
+                    exit 1
+                  }
+                done
+              }
+
+              if [ -d "$out"/etc ]; then
+                pushd "$out"
+                handleEtc
+                popd
+              fi
             '';
           }
       ) { extensions = []; }
