@@ -105,9 +105,48 @@ let
             # (@nbp) TODO: Check on Windows and Mac.
             # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
             installPhase = ''
+              handleEtc() {
+                local subdir="$1"
+                local oldIFS="$IFS"
+
+                # Directories we are aware of
+                for paths in \
+                  "etc/bash_completion.d","share/bash_completion/completions";
+                  do
+
+                  IFS=","
+                  set -- $paths
+                  IFS="$oldIFS"
+
+                  local orig_path="$1"
+                  local wanted_path="$2"
+
+                  # Rename the files
+                  if [ -d "./$subdir/$orig_path" ]; then
+                    mkdir -p "$(dirname ./"$subdir"/"$wanted_path")"
+                    mv -v "./"$subdir"/"$orig_path"" "./"$subdir"/"$wanted_path""
+                  fi
+
+                  # Replace all occurences in the manifest file
+                  sed -i -e "s,"$orig_path","$wanted_path"," "$subdir"/manifest.in
+
+                  # Fail explicitly if etc is not empty so we can add it to the list and/or report it upstream
+                  rmdir ./$subdir/etc || {
+                    echo Installer tries to install to /etc:
+                    find ./$subdir/etc
+                    exit 1
+                  }
+                done
+              }
+
               for i in * ; do
                 if [ -d "$i" ]; then
                   cd $i
+
+                  for etc in */etc; do
+                    handleEtc "$(dirname "$etc")"
+                  done
+
                   patchShebangs install.sh
                   CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
                   cd ..
