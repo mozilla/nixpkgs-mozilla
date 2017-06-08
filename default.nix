@@ -40,8 +40,7 @@ let
 
     servo = callPackage ./pkgs/servo { };
 
-    firefox-developer-bin = callPackage ./pkgs/firefox-bin/default.nix { channel = "developer"; };
-    firefox-nightly-bin = callPackage ./pkgs/firefox-bin/default.nix { channel = "nightly"; };
+    firefox-nightly-bin = callPackage ./pkgs/firefox-nightly-bin/default.nix { };
   
     VidyoDesktop = callPackage ./pkgs/VidyoDesktop { };
 
