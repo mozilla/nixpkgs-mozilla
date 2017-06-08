@@ -87,21 +87,20 @@ let
 
   runUpdateScript = package: ''
     echo -ne " - ${package.name}: UPDATING ..."\\r
-    ${package.updateScript}
-    #&> ${(builtins.parseDrvName package.name).name}.log
-    #CODE=$?
-    #if [ "$CODE" != "0" ]; then
-    #  echo " - ${package.name}: ERROR       "
-    #  echo ""
-    #  echo "--- SHOWING ERROR LOG FOR ${package.name} ----------------------"
-    #  echo ""
-    #  cat ${(builtins.parseDrvName package.name).name}.log
-    #  echo ""
-    #  echo "--- SHOWING ERROR LOG FOR ${package.name} ----------------------"
-    #  exit $CODE
-    #else
-    #  rm ${(builtins.parseDrvName package.name).name}.log
-    #fi
+    ${package.updateScript} &> ${(builtins.parseDrvName package.name).name}.log
+    CODE=$?
+    if [ "$CODE" != "0" ]; then
+      echo " - ${package.name}: ERROR       "
+      echo ""
+      echo "--- SHOWING ERROR LOG FOR ${package.name} ----------------------"
+      echo ""
+      cat ${(builtins.parseDrvName package.name).name}.log
+      echo ""
+      echo "--- SHOWING ERROR LOG FOR ${package.name} ----------------------"
+      exit $CODE
+    else
+      rm ${(builtins.parseDrvName package.name).name}.log
+    fi
     echo " - ${package.name}: DONE.       "
   '';
 
