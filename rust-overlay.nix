@@ -137,7 +137,7 @@ let
   fromManifest = manifest: { stdenv, fetchurl, patchelf }:
     fromManifestFile (builtins.fetchurl manifest) { inherit stdenv fetchurl patchelf; };
 
-in
+in rec
 
 {
   lib = super.lib // {
@@ -145,6 +145,17 @@ in
     rustLib = {
       inherit fromManifest fromManifestFile manifest_v2_url;
     };
+  };
+
+  rustChannelOf = manifest_args: fromManifest
+    (manifest_v2_url manifest_args)
+    { inherit (self) stdenv fetchurl patchelf; }
+    ;
+
+  rustChannels = {
+    nightly = rustChannelOf { channel = "nightly"; };
+    beta    = rustChannelOf { channel = "beta"; };
+    stable  = rustChannelOf { channel = "stable"; };
   };
 
   # For each channel:
@@ -155,15 +166,7 @@ in
   #   rustChannels.nightly.rust-docs
   #   rustChannels.nightly.rust-src
   #   rustChannels.nightly.rust-std
-  rustChannels = {
-    nightly = fromManifest (manifest_v2_url { channel = "nightly"; }) {
-      inherit (self) stdenv fetchurl patchelf;
-    };
-    beta    = fromManifest (manifest_v2_url { channel = "beta"; }) {
-      inherit (self) stdenv fetchurl patchelf;
-    };
-    stable  = fromManifest (manifest_v2_url { channel = "stable"; }) {
-      inherit (self) stdenv fetchurl patchelf;
-    };
-  };
+
+  # For a specific date:
+  #   rustChannelOf { date = "2017-06-06"; channel = "beta"; }.rust
 }
