@@ -31,7 +31,7 @@ let
       updateScript = self.lib.updateFromGitHub {
         owner = "NixOS";
         repo = "nixpkgs-channels";
-        branch = "nixos-unstable";
+        branch = "nixos-unstable-small";
         path = "pkgs/nixpkgs.json";
       };
     };

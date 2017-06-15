@@ -1,7 +1,7 @@
 { pkgs }:
 
 let
-  inherit (pkgs) cacert nix-prefetch-scripts jq curl gnused gnugrep coreutils;
+  inherit (pkgs) cacert nix jq curl gnused gnugrep coreutils;
 in {
 
   updateFromGitHub = { owner, repo, path, branch }: ''
@@ -14,11 +14,11 @@ in {
     }
 
     github_sha256() {
-      ${nix-prefetch-scripts}/bin/nix-prefetch-zip \
-         --hash-type sha256 \
+      ${nix}/bin/nix-prefetch-url \
+         --unpack \
+         --type sha256 \
          "https://github.com/$1/$2/archive/$3.tar.gz" 2>&1 | \
-         ${gnugrep}/bin/grep "hash is " | \
-         ${gnused}/bin/sed 's/hash is //'
+         tail -1
     }
 
     echo "=== ${owner}/${repo}@${branch} ==="
@@ -34,7 +34,7 @@ in {
       echo "sha256 is not valid!"
       exit 2
     fi
-    source_file=$HOME/${path}
+    source_file=${path}
     echo "Content of source file (``$source_file``) written."
     cat <<REPO | ${coreutils}/bin/tee "$source_file"
     {

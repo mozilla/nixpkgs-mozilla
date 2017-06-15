@@ -5,6 +5,7 @@ let
 
   unwrapped = pkgs.callPackage "${pkgs.path}/pkgs/applications/networking/browsers/firefox-bin" {
     inherit (pkgs) stdenv;
+    channel = "nightly";
     generated = import (./. + "/sources.nix");
     gconf = pkgs.gnome2.GConf;
     inherit (pkgs.gnome2) libgnome libgnomeui;

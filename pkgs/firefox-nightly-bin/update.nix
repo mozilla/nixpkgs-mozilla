@@ -13,7 +13,7 @@ let
 in writeScript "update-firefox-nightly-bin" ''
   PATH=${coreutils}/bin:${gnused}/bin:${gnugrep}/bin:${xidel}/bin:${curl}/bin:${jq}/bin
 
-  set -eux
+  #set -eux
   pushd pkgs/firefox-nightly-bin
 
   tmpfile=`mktemp`
@@ -22,9 +22,9 @@ in writeScript "update-firefox-nightly-bin" ''
   nightly_file=`xidel -q $url --extract //a | \
                 grep firefox | \
                 grep linux-x86_64.json | \
+                tail -1 | \
                 sed -e 's/.json//'`
   nightly_json=`curl --silent $url$nightly_file.json`
-  nightly_checksum=
 
   cat > $tmpfile <<EOF
   {
