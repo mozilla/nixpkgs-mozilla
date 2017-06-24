@@ -165,5 +165,10 @@ in
     stable  = fromManifest (manifest_v2_url { channel = "stable"; }) {
       inherit (self) stdenv fetchurl patchelf;
     };
+
+    nightlyCustom = { date ? null, staging ? false }:
+      fromManifest (manifest_v2_url { channel = "nightly"; inherit date staging; }) {
+        inherit (self) stdenv fetchurl patchelf;
+      };
   };
 }
