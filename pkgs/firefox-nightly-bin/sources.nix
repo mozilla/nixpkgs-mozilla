@@ -1,10 +1,10 @@
 {
-  version = "56.0a1" + "-" + "20170704100254";
+  version = "56.0a1" + "-" + "20170705170343";
   sources = [
     { url = "https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/firefox-56.0a1.en-US.linux-x86_64.tar.bz2";
       locale = "en-US";
       arch = "linux-x86_64";
-      sha512 = "67bc814bb58673f5cb2dbd5552b86be41dba3d250ebf512645c88cb2ae3ade8666f288e9b22d880af80f861923bfccc1355e61e10c628c09f6a31bb4b3e9bcf4";
+      sha512 = "2be1afd837f41b2f6781760801cc8344ad5add9d03e5844e819d92980c7901c4a2fa1b890e8bc01528393b42c3abce3dd00901f7a5cefbda953858e8de219be8";
     }
   ];
 }
