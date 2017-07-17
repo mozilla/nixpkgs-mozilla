@@ -6,6 +6,7 @@ in
 { pkgs ? import _nixpkgs {}
 , package ? null
 , maintainer ? null
+, dont_prompt ? false
 }:
 
 # TODO: add assert statements
@@ -13,6 +14,8 @@ in
 let
 
   pkgs-mozilla = import ./default.nix { inherit pkgs; };
+
+  dont_prompt_str = if dont_prompt then "yes" else "no";
 
   packagesWith = cond: return: set:
     pkgs.lib.flatten
@@ -121,7 +124,11 @@ in pkgs.stdenv.mkDerivation {
     echo "Going to be running update for following packages:"
     echo "${builtins.concatStringsSep "\n" (map (x: " - ${x.name}") packages)}"
     echo ""
-    read -n1 -r -p "Press space to continue..." confirm
+    if [ "${dont_prompt_str}" = "no" ]; then
+      read -n1 -r -p "Press space to continue..." confirm
+    else
+      confirm=""
+    fi
     if [ "$confirm" = "" ]; then
       echo ""
       echo "Running update for:"
