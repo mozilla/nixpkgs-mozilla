@@ -40,7 +40,7 @@ let
 
     servo = callPackage ./pkgs/servo { };
 
-    firefox-nightly-bin = callPackage ./pkgs/firefox-nightly-bin/default.nix { };
+    firefox-nightly-bin = _pkgs.lowPrio (callPackage ./pkgs/firefox-nightly-bin/default.nix { });
   
     VidyoDesktop = callPackage ./pkgs/VidyoDesktop { };
 
