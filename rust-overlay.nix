@@ -39,27 +39,59 @@ let
     "x86_64-freebsd"  = "x86_64-unknown-freebsd";
   }.${system} or (throw "Rust overlay does not support ${system} yet.");
 
+  getComponentsWithFixedPlatform = pkgs: pkgname: stdenv:
+    let
+      pkg = pkgs.${pkgname};
+      srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
+      components = srcInfo.components or [];
+      componentNamesList =
+        builtins.map (pkg: pkg.pkg) (builtins.filter (pkg: (pkg.target != "*")) components);
+    in
+      componentNamesList;
+
   getExtensions = pkgs: pkgname: stdenv:
     let
+      inherit (super.lib) unique;
       pkg = pkgs.${pkgname};
       srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
       extensions = srcInfo.extensions or [];
-      extensionNamesList =
-        builtins.map (pkg: pkg.pkg) (builtins.filter (pkg:  (pkg.target == (hostTripleOf stdenv.system)) || (pkg.target == "*")) extensions);
+      extensionNamesList = unique (builtins.map (pkg: pkg.pkg) extensions);
     in
       extensionNamesList;
 
-  getFetchUrl = pkgs: pkgname: stdenv: fetchurl:
+  hasTarget = pkgs: pkgname: target:
+    pkgs ? ${pkgname}.target.${target};
+
+  getTuples = pkgs: name: targets:
+    builtins.map (target: { inherit name target; }) (builtins.filter (target: hasTarget pkgs name target) targets);
+
+  # In the manifest, a package might have different components which are bundled with it, as opposed as the extensions which can be added.
+  # By default, a package will include the components for the same architecture, and offers them as extensions for other architectures.
+  #
+  # This functions returns a list of { name, target } attribute sets, which includes the current system package, and all its components for the selected targets.
+  # The list contains the package for the pkgTargets as well as the packages for components for all compTargets
+  getTargetPkgTuples = pkgs: pkgname: pkgTargets: compTargets: stdenv:
+    let
+      inherit (builtins) elem;
+      inherit (super.lib) intersectLists;
+      components = getComponentsWithFixedPlatform pkgs pkgname stdenv;
+      extensions = getExtensions pkgs pkgname stdenv;
+      compExtIntersect = intersectLists components extensions;
+      tuples = (getTuples pkgs pkgname pkgTargets) ++ (builtins.map (name: getTuples pkgs name compTargets) compExtIntersect);
+    in
+      tuples;
+
+  getFetchUrl = pkgs: pkgname: target: stdenv: fetchurl:
     let
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
+      srcInfo = pkg.target.${target};
     in
       (fetchurl { url = srcInfo.url; sha256 = srcInfo.hash; });
 
-  getSrcs = pkgs: pkgname: extensions: stdenv: fetchurl:
+  checkMissingExtensions = pkgs: pkgname: stdenv: extensions:
     let
       inherit (builtins) head;
-      inherit (super.lib) subtractLists concatStringsSep;
+      inherit (super.lib) concatStringsSep subtractLists;
       availableExtensions = getExtensions pkgs pkgname stdenv;
       missingExtensions = subtractLists availableExtensions extensions;
       extensionsToInstall =
@@ -67,9 +99,25 @@ let
           While compiling ${pkgname}: the extension ${head missingExtensions} is not available.
           Select extensions from the following list:
           ${concatStringsSep "\n" availableExtensions}'';
-      pkgsToInstall = [pkgname] ++ extensionsToInstall;
     in
-      (builtins.map (pkg: (getFetchUrl pkgs pkg stdenv fetchurl)) pkgsToInstall);
+      extensionsToInstall;
+
+  getSrcs = pkgs: pkgname: targets: extensions: targetExtensions: stdenv: fetchurl:
+    let
+      inherit (builtins) head map;
+      inherit (super.lib) flatten remove subtractLists unique;
+      targetExtensionsToInstall = checkMissingExtensions pkgs pkgname stdenv targetExtensions;
+      hostTargets = [ "*" (hostTripleOf stdenv.system)];
+      pkgTuples = flatten (getTargetPkgTuples pkgs pkgname hostTargets targets stdenv);
+      extensionTuples = flatten (map (name: getTargetPkgTuples pkgs name hostTargets targets stdenv) extensions);
+      targetExtensionTuples = flatten (map (name: getTargetPkgTuples pkgs name targets targets stdenv) targetExtensions);
+      pkgsTuples = pkgTuples ++ extensionTuples ++ targetExtensionTuples;
+      missingTargets = subtractLists (map (tuple: tuple.target) pkgsTuples) (remove "*" targets);
+      pkgsTuplesToInstall =
+        if missingTargets == [] then pkgsTuples else throw ''
+          While compiling ${pkgname}: the target ${head missingTargets} is not available for any package.'';
+    in
+      map (tuple: (getFetchUrl pkgs tuple.name tuple.target stdenv fetchurl)) pkgsTuplesToInstall;
 
   # Manifest files are organized as follow:
   # { date = "2017-03-03";
@@ -84,6 +132,19 @@ let
   # The packages available usually are:
   #   cargo, rust-analysis, rust-docs, rust-src, rust-std, rustc, and
   #   rust, which aggregates them in one package.
+  #
+  # For each package the following options are available:
+  #   extensions        - The extensions that should be installed for the package.
+  #                       For example, install the package rust and add the extension rust-src.
+  #   targets           - The package will always be installed for the host system, but with this option
+  #                       extra targets can be specified, e.g. "mips-unknown-linux-musl". The target
+  #                       will only apply to components of the package that support being installed for
+  #                       a different architecture. For example, the rust package will install rust-std
+  #                       for the host system and the targets.
+  #   targetExtensions  - If you want to force extensions to be installed for the given targets, this is your option.
+  #                       All extensions in this list will be installed for the target architectures.
+  #                       *Attention* If you want to install an extension like rust-src, that has no fixed architecture (arch *),
+  #                       you will need to specify this extension in the extensions options or it will not be installed!
   fromManifestFile = manifest: { stdenv, fetchurl, patchelf }:
     let
       inherit (builtins) elemAt;
@@ -92,11 +153,11 @@ let
       pkgs = fromTOML (builtins.readFile manifest);
     in
     flip mapAttrs pkgs.pkg (name: pkg:
-      makeOverridable ({extensions}:
+      makeOverridable ({extensions, targets, targetExtensions}:
         let
           version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
           version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
-          srcs = getSrcs pkgs.pkg name extensions stdenv fetchurl;
+          srcs = getSrcs pkgs.pkg name targets extensions targetExtensions stdenv fetchurl;
         in
           stdenv.mkDerivation {
             name = name + "-" + version;
@@ -131,7 +192,7 @@ let
               setInterpreter $out
             '';
           }
-      ) { extensions = []; }
+      ) { extensions = []; targets = []; targetExtensions = []; }
     );
 
   fromManifest = manifest: { stdenv, fetchurl, patchelf }:
