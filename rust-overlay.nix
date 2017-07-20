@@ -138,8 +138,11 @@ let
 
                 # Directories we are aware of, given as substitution lists
                 for paths in \
-                  "etc/bash_completion.d","share/bash_completion/completions";
+                  "etc/bash_completion.d","share/bash_completion/completions","etc/bash_completions.d","share/bash_completions/completions";
                   do
+                  # Some directoties may be missing in some versions. If so we just skip them.
+                  # See https://github.com/mozilla/nixpkgs-mozilla/issues/48 for more infomation.
+                  if [ ! -e $paths ]; then continue; fi
 
                   IFS=","
                   set -- $paths
