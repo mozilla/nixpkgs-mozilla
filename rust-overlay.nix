@@ -107,10 +107,11 @@ let
       inherit (builtins) head map;
       inherit (super.lib) flatten remove subtractLists unique;
       targetExtensionsToInstall = checkMissingExtensions pkgs pkgname stdenv targetExtensions;
+      extensionsToInstall = checkMissingExtensions pkgs pkgname stdenv extensions;
       hostTargets = [ "*" (hostTripleOf stdenv.system)];
       pkgTuples = flatten (getTargetPkgTuples pkgs pkgname hostTargets targets stdenv);
-      extensionTuples = flatten (map (name: getTargetPkgTuples pkgs name hostTargets targets stdenv) extensions);
-      targetExtensionTuples = flatten (map (name: getTargetPkgTuples pkgs name targets targets stdenv) targetExtensions);
+      extensionTuples = flatten (map (name: getTargetPkgTuples pkgs name hostTargets targets stdenv) extensionsToInstall);
+      targetExtensionTuples = flatten (map (name: getTargetPkgTuples pkgs name targets targets stdenv) targetExtensionsToInstall);
       pkgsTuples = pkgTuples ++ extensionTuples ++ targetExtensionTuples;
       missingTargets = subtractLists (map (tuple: tuple.target) pkgsTuples) (remove "*" targets);
       pkgsTuplesToInstall =
