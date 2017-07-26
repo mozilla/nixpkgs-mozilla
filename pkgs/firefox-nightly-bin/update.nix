@@ -17,9 +17,10 @@ in writeScript "update-firefox-nightly-bin" ''
   pushd pkgs/firefox-nightly-bin
 
   tmpfile=`mktemp`
-  url=http://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/
+  url=https://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/
 
-  nightly_file=`xidel -q $url --extract //a | \
+  nightly_file=`curl $url | \
+                xidel - --extract //a | \
                 grep firefox | \
                 grep linux-x86_64.json | \
                 tail -1 | \
