@@ -8,6 +8,8 @@
 , setuptools
 , rust # rust & cargo bundled. (otheriwse use pkgs.rust.{rustc,cargo})
 , buildFHSUserEnv # Build a FHS environment with all Gecko dependencies.
+, clang
+, ccache
 }:
 
 let
@@ -55,6 +57,9 @@ let
 
     rust
 
+    # For building bindgen
+    clang
+
     # mach mochitest
     procps
 
@@ -68,11 +73,13 @@ let
     libnotify
 
   ] ++ optionals inNixShell [
-    valgrind gdb rr
+    valgrind gdb rr ccache
   ];
 
   shellHook = ''
     export MOZBUILD_STATE_PATH=$PWD/.mozbuild
+    export CC="${stdenv.cc}/bin/cc";
+    export CXX="${stdenv.cc}/bin/c++";
   '';
 
   # propagatedBuildInput should already have applied the "lib.chooseDevOutputs"
