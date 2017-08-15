@@ -234,6 +234,14 @@ let
                 popd
               fi
             '';
+
+            # Add the compiler as part of the propagated build inputs in order
+            # to run:
+            #
+            #    $ nix-shell -p rustChannels.stable.rust
+            #
+            # And get a fully working Rust compiler, with the stdenv linker.
+            propagatedBuildInputs = [ stdenv.cc ];
           }
       ) { extensions = []; targets = []; targetExtensions = []; }
     );
