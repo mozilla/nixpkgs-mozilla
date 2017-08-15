@@ -143,6 +143,10 @@ stdenv.mkDerivation {
   doCheck = false;
   doInstallCheck = false;
 
+  # This is for debugging purposes, go to hell damn wrapper which are removing
+  # all I need for debugging.
+  hardeningDisable = [ "all" ];
+
   passthru.updateScript = updateFromGitHub {
     owner = "mozilla";
     repo = "gecko-dev";
