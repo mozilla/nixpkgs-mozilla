@@ -85,7 +85,7 @@ let
   # propagatedBuildInput should already have applied the "lib.chooseDevOutputs"
   # on the propagated build inputs.
   pullAllInputs = inputs:
-    inputs ++ lib.concatMap (i: pullAllInputs i.propagatedNativeBuildInputs) inputs;
+    inputs ++ lib.concatMap (i: pullAllInputs (i.propagatedNativeBuildInputs or [])) inputs;
 
   fhs = buildFHSUserEnv {
     name = "gecko-deps-fhs";
