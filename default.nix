@@ -1,54 +1,15 @@
-# This script extends nixpkgs with mozilla packages.
-#
-# First it imports the <nixpkgs> in the environment and depends on it
-# providing fetchFromGitHub and lib.importJSON.
-#
-# After that it loads a pinned release of nixos-unstable and uses that as the
-# base for the rest of packaging. One can pass it's own pkgsPath attribute if
-# desired, probably in the context of hydra.
+# Nixpkgs overlay which aggregates overlays for tools and products, used and
+# published by Mozilla.
+self: super:
 
-{ pkgsPath ? null
-, overlays ? []
-, system ? null
-, geckoSrc ? null
-, servoSrc ? null
-}:
+with super.lib;
 
-let
-  _pkgs = import <nixpkgs> {};
-  _pkgsPath =
-    if pkgsPath != null then pkgsPath
-    else _pkgs.fetchFromGitHub (_pkgs.lib.importJSON ./pkgs/nixpkgs.json);
+(foldl' (flip extends) (_: super) [
 
-  overlay = self: super: {
-    lib = super.lib // (import ./pkgs/lib/default.nix { pkgs = self; });
+  (import ./lib-overlay.nix)
+  (import ./rust-overlay.nix)
+  (import ./firefox-overlay.nix)
+  (import ./vidyo-overlay.nix)
+  (import ./servo-overlay.nix)
 
-    rustPlatform = self.rustUnstable;
-
-    name = "nixpkgs";
-    updateScript = self.lib.updateFromGitHub {
-      owner = "NixOS";
-      repo = "nixpkgs-channels";
-      branch = "nixos-unstable-small";
-      path = "pkgs/nixpkgs.json";
-    };
-
-    gecko = super.callPackage ./pkgs/gecko {
-      inherit (self.pythonPackages) setuptools;
-      inherit (self.rustChannels.stable) rust;
-    };
-
-    servo = super.callPackage ./pkgs/servo { };
-
-    firefox-nightly-bin = super.callPackage ./pkgs/firefox-nightly-bin/default.nix { };
-  
-    VidyoDesktop = super.callPackage ./pkgs/VidyoDesktop { };
-  };
-in
-
-import _pkgsPath {
-  overlays = [
-    (import ./rust-overlay.nix)
-    overlay
-  ] ++ overlays;
-}
+]) self

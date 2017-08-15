@@ -103,13 +103,6 @@ in
     };
   };
 
-  nightly-2017-07-25-10-03-46 = firefoxVersion rec { timestamp = "2017-07-25-10-03-46"; name = "Nightly-${timestamp}"; version = "56.0a1"; release = false; }; # good
-  nightly-2017-07-25-14-40-53 = firefoxVersion rec { timestamp = "2017-07-25-14-40-53"; name = "Nightly-${timestamp}"; version = "56.0a1"; release = false; }; # bad
-  nightly-2017-07-26-10-02-41 = firefoxVersion rec { timestamp = "2017-07-26-10-02-41"; name = "Nightly-${timestamp}"; version = "56.0a1"; release = false; }; # bad
-  nightly-2017-07-27-10-02-40 = firefoxVersion rec { timestamp = "2017-07-27-10-02-40"; name = "Nightly-${timestamp}"; version = "56.0a1"; release = false; };
-  nightly-2017-07-27-16-25-31 = firefoxVersion rec { timestamp = "2017-07-27-16-25-31"; name = "Nightly-${timestamp}"; version = "56.0a1"; release = false; };
-
-
   firefox-nightly-bin = firefoxVersion {
     name = "Firefox Nightly";
     version = firefox_versions.FIREFOX_NIGHTLY;
@@ -129,6 +122,13 @@ in
     name = "Firefox Esr";
     version = firefox_versions.FIREFOX_ESR;
     release = true;
+  };
+
+  ## Set of forzen packages. If you rely on these attributes, you should
+  ## consider updating nixpkgs-mozilla frequently, in order to follow the
+  ## updated versions.
+  reproducible = (super.reproducible or {}) // {
+    firefox-nightly-bin = super.callPackage ./pkgs/firefox-nightly-bin/default.nix { };
   };
 
   # Build Firefox from sources, mostly used to produce an environment for
