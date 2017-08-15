@@ -77,9 +77,17 @@ let
     # and pull the the dependencies needed for building firefox with this
     # environment.
     #
-    #   $ nix-shell release.nix -A gecko.i686-linux.gcc472 --pure --command 'gcc --version'
+    #   $ nix-shell release.nix -A gecko.i686-linux.gcc --pure --command '$CC --version'
     #   $ nix-shell release.nix -A gecko.x86_64-linux.clang --pure
     #
+    # As some of the test script of Gecko are checking against absolute path, a
+    # fake-FHS is provided for Gecko.  It can be accessed by appending
+    # ".fhs.env" behind the previous commands:
+    #
+    #   $ nix-shell release.nix -A gecko.x86_64-linux.gcc.fhs.env
+    #
+    # Which will spawn a new shell where the closure of everything used to build
+    # Gecko would be part of the fake-root.
     gecko = build "gecko" { compilers = geckoCompilers; };
     servo = build "servo";
     VidyoDesktop = build "VidyoDesktop";
