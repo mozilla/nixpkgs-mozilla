@@ -1,14 +1,10 @@
-{ pkgs
+{ stdenv, fetchurl, buildFHSUserEnv, makeWrapper, dpkg, alsaLib,
+  alsaUtils, alsaOss, alsaTools, alsaPlugins, libidn, utillinux, mesa_glu, qt4,
+  zlib, patchelf, xorg
 }:
 
 let
-
-  inherit (pkgs) fetchurl buildFHSUserEnv makeWrapper dpkg alsaLib
-    alsaUtils alsaOss alsaTools alsaPlugins libidn utillinux mesa_glu qt4
-    zlib patchelf xorg;
-  inherit (pkgs.stdenv) mkDerivation;
-
-  VidyoDesktopDeb = mkDerivation {
+  VidyoDesktopDeb = stdenv.mkDerivation {
     name = "VidyoDesktopDeb-123";
     builder = ./builder.sh;
     inherit dpkg;
