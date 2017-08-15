@@ -1,78 +1,130 @@
 with builtins;
+
+# Tokenizer.
 let
   layout_pat = "[ \n]+";
   layout_pat_opt = "[ \n]*";
-  token_pat = ''=|[[][[][a-zA-Z0-9_."*-]+[]][]]|[[][a-zA-Z0-9_."*-]+[]]|[a-zA-Z0-9_-]+|"[^"]*"'';
-  tokenizer_rec = len: prevTokens: patterns: str:
+  token_pat = ''=|[[][[][a-zA-Z0-9_."*-]+[]][]]|[[][a-zA-Z0-9_."*-]+[]]|[a-zA-Z0-9_-]+|"[^"]*"''; #"
+
+  tokenizer_1_11 = str:
     let
-      pattern = head patterns;
-      layoutAndTokens = match pattern str;
-      matchLength = stringLength (head layoutAndTokens);
-      tokens = prevTokens ++ tail layoutAndTokens;
+      tokenizer_rec = len: prevTokens: patterns: str:
+        let
+          pattern = head patterns;
+          layoutAndTokens = match pattern str;
+          matchLength = stringLength (head layoutAndTokens);
+          tokens = prevTokens ++ tail layoutAndTokens;
+        in
+          if layoutAndTokens == null then
+            # if we cannot reduce the pattern, return the list of token
+            if tail patterns == [] then prevTokens
+            # otherwise, take the next pattern, which only captures half the token.
+            else tokenizer_rec len prevTokens (tail patterns) str
+          else tokenizer_rec len tokens patterns (substring matchLength len str);
+
+      avgTokenSize = 100;
+      ceilLog2 = v:
+        let inner = n: i: if i < v then inner (n + 1) (i * 2) else n; in
+        inner 1 1;
+
+      # The builtins.match function match the entire string, and generate a list of all captured
+      # elements. This is the most efficient way to make a tokenizer, if we can make a pattern which
+      # capture all token of the file. Unfortunately C++ std::regex does not support captures in
+      # repeated patterns. As a work-around, we generate patterns which are matching tokens in multiple
+      # of 2, such that we can avoid iterating too many times over the content.
+      generatePatterns = str:
+        let
+          depth = ceilLog2 (stringLength str / avgTokenSize);
+          inner = depth:
+            if depth == 0 then [ "(${token_pat})" ]
+            else
+              let next = inner (depth - 1); in
+              [ "${head next}${layout_pat}${head next}" ] ++ next;
+        in
+          map (pat: "(${layout_pat_opt}${pat}).*" ) (inner depth);
+
     in
-      if layoutAndTokens == null then
-        # if we cannot reduce the pattern, return the list of token
-        if tail patterns == [] then prevTokens
-        # otherwise, take the next pattern, which only captures half the token.
-        else tokenizer_rec len prevTokens (tail patterns) str
-      else tokenizer_rec len tokens patterns (substring matchLength len str);
+      tokenizer_rec (stringLength str) [] (generatePatterns str) str;
 
-  avgTokenSize = 100;
-  ceilLog2 = v:
-    let inner = n: i: if i < v then inner (n + 1) (i * 2) else n; in
-    inner 1 1;
-
-  # The builtins.match function match the entire string, and generate a list of all captured
-  # elements. This is the most efficient way to make a tokenizer, if we can make a pattern which
-  # capture all token of the file. Unfortunately C++ std::regex does not support captures in
-  # repeated patterns. As a work-around, we generate patterns which are matching tokens in multiple
-  # of 2, such that we can avoid iterating too many times over the content.
-  generatePatterns = str:
+  tokenizer_1_12 = str:
     let
-      depth = ceilLog2 (stringLength str / avgTokenSize);
-      inner = depth:
-        if depth == 0 then [ "(${token_pat})" ]
-        else
-          let next = inner (depth - 1); in
-          [ "${head next}${layout_pat}${head next}" ] ++ next;
+      # Nix 1.12 has the builtins.split function which allow to tokenize the
+      # file quickly. by iterating with a simple regexp.
+      layoutTokenList = split "(${token_pat})" str;
+      isLayout = s: match layout_pat_opt s != null;
+      filterLayout = list:
+        filter (s:
+          if isString s then
+            if isLayout s then false
+            else throw "Error: Unexpected token: '${s}'"
+          else true) list;
+      removeTokenWrapper = list:
+        map (x: assert tail x == []; head x) list;
     in
-      map (pat: "(${layout_pat_opt}${pat}).*" ) (inner depth);
+      removeTokenWrapper (filterLayout layoutTokenList);
 
-  tokenizer = str: tokenizer_rec (stringLength str) [] (generatePatterns str) str;
+  tokenizer =
+    if builtins ? split
+    then tokenizer_1_12
+    else tokenizer_1_11;
+in
 
+# Parse entry headers
+let
   unescapeString = str:
     # Let's ignore any escape character for the moment.
-    assert match ''"[^"]*"'' str != null;
+    assert match ''"[^"]*"'' str != null; #"
     substring 1 (stringLength str - 2) str;
-    
-  tokenToValue = token:
-    if token == "true" then true
-    else if token == "false" then false
-    else unescapeString token;
 
-  # Match the content of TOML format section names, and add the grouping such that:
-  #   match header_pat "a.b.c" == [ "a" ".b" "b" ".c" "c" ]
-  #
+  # Match the content of TOML format section names.
+  ident_pat = ''[a-zA-Z0-9_-]+|"[^"]*"''; #"
+
+  removeBraces = token: wrapLen:
+    substring wrapLen (stringLength token - 2 * wrapLen) token;
+
   # Note, this implementation is limited to 11 identifiers.
-  ident_pat = ''[a-zA-Z0-9_-]+|"[^"]*"'';
-  header_pat =
-    foldl' (pat: n: "(${ident_pat})([.]${pat})?")
-      "(${ident_pat})" (genList (n: 0) 10);
+  matchPathFun_1_11 = token:
+    let
+      # match header_pat "a.b.c" == [ "a" ".b" "b" ".c" "c" ]
+      header_pat =
+        foldl' (pat: n: "(${ident_pat})([.]${pat})?")
+           "(${ident_pat})" (genList (n: 0) 10);
+      matchPath = match header_pat token;
+      filterDot = filter (s: substring 0 1 s != ".") matchPath;
+    in
+      filterDot;
+
+  matchPathFun_1_12 = token:
+    map (e: head e)
+      (filter (s: isList s)
+        (split "(${ident_pat})" token));
+
+  matchPathFun =
+    if builtins ? split
+    then matchPathFun_1_12
+    else matchPathFun_1_11;
 
   headerToPath = token: wrapLen:
     let
-      token' = substring wrapLen (stringLength token - 2 * wrapLen) token;
-      matchPath = match header_pat token';
-      filterDot = filter (s: substring 0 1 s != ".") matchPath;
+      token' = removeBraces token wrapLen;
+      matchPath = matchPathFun token';
       path =
         map (s:
-          if substring 0 1 s != ''"'' then s
+          if substring 0 1 s != ''"'' then s #"
           else unescapeString s 
-        ) filterDot;
+        ) matchPath;
     in 
       assert matchPath != null;
       # assert trace "Path: ${token'}; match as ${toString path}" true;
       path;
+in
+
+# Reconstruct the equivalent attribute set.
+let
+  tokenToValue = token:
+    if token == "true" then true
+    else if token == "false" then false
+    else unescapeString token;
 
   parserInitState = {
     idx = 0;
