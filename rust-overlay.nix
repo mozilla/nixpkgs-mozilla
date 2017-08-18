@@ -249,9 +249,9 @@ let
   fromManifest = manifest: { stdenv, fetchurl, patchelf }:
     fromManifestFile (builtins.fetchurl manifest) { inherit stdenv fetchurl patchelf; };
 
-in rec
+in
 
-{
+rec {
   lib = super.lib // {
     inherit fromTOML;
     rustLib = {
@@ -264,20 +264,27 @@ in rec
     { inherit (self) stdenv fetchurl patchelf; }
     ;
 
-  rustChannels = {
-    nightly = rustChannelOf { channel = "nightly"; };
-    beta    = rustChannelOf { channel = "beta"; };
-    stable  = rustChannelOf { channel = "stable"; };
+  # Set of packages which are automagically updated. Do not rely on these for
+  # reproducible builds.
+  latest = (super.latest or {}) // {
+    rustChannels = {
+      nightly = rustChannelOf { channel = "nightly"; };
+      beta    = rustChannelOf { channel = "beta"; };
+      stable  = rustChannelOf { channel = "stable"; };
+    };
   };
 
+  # For backward compatibility
+  rustChannels = latest.rustChannels;
+
   # For each channel:
-  #   rustChannels.nightly.cargo
-  #   rustChannels.nightly.rust   # Aggregate all others. (recommended)
-  #   rustChannels.nightly.rustc
-  #   rustChannels.nightly.rust-analysis
-  #   rustChannels.nightly.rust-docs
-  #   rustChannels.nightly.rust-src
-  #   rustChannels.nightly.rust-std
+  #   latest.rustChannels.nightly.cargo
+  #   latest.rustChannels.nightly.rust   # Aggregate all others. (recommended)
+  #   latest.rustChannels.nightly.rustc
+  #   latest.rustChannels.nightly.rust-analysis
+  #   latest.rustChannels.nightly.rust-docs
+  #   latest.rustChannels.nightly.rust-src
+  #   latest.rustChannels.nightly.rust-std
 
   # For a specific date:
   #   rustChannelOf { date = "2017-06-06"; channel = "beta"; }.rust

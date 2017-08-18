@@ -22,7 +22,7 @@ A nixpkgs overlay is provided to contains all of the latest rust releases.
 To use the rust overlay run the ``./rust-overlay-install.sh`` command. It will
 link the current ``./rust-overlay.nix`` into you ``~/.config/nixpkgs/overlays`` folders.
 
-Once this is done, use ``nix-env -iA nixpkgs.rustChannels.nightly.rust`` for
+Once this is done, use ``nix-env -iA nixpkgs.latest.rustChannels.nightly.rust`` for
 example. Replace the ``nixpkgs.`` prefix with ``nixos.`` on NixOS.
 
 TODO

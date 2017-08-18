@@ -103,38 +103,39 @@ in
     };
   };
 
-  firefox-nightly-bin = firefoxVersion {
-    name = "Firefox Nightly";
-    version = firefox_versions.FIREFOX_NIGHTLY;
-    release = false;
-  };
-  firefox-beta-bin = firefoxVersion {
-    name = "Firefox Beta";
-    version = firefox_versions.LATEST_FIREFOX_DEVEL_VERSION;
-    release = true;
-  };
-  firefox-release-bin = firefoxVersion {
-    name = "Firefox";
-    version = firefox_versions.LATEST_FIREFOX_VERSION;
-    release = true;
-  };
-  firefox-esr-bin = firefoxVersion {
-    name = "Firefox Esr";
-    version = firefox_versions.FIREFOX_ESR;
-    release = true;
-  };
-
-  ## Set of forzen packages. If you rely on these attributes, you should
-  ## consider updating nixpkgs-mozilla frequently, in order to follow the
-  ## updated versions.
-  reproducible = (super.reproducible or {}) // {
-    firefox-nightly-bin = super.callPackage ./pkgs/firefox-nightly-bin/default.nix { };
+  # Set of packages which are automagically updated. Do not rely on these for
+  # reproducible builds.
+  latest = (super.latest or {}) // {
+    firefox-nightly-bin = firefoxVersion {
+      name = "Firefox Nightly";
+      version = firefox_versions.FIREFOX_NIGHTLY;
+      release = false;
+    };
+    firefox-beta-bin = firefoxVersion {
+      name = "Firefox Beta";
+      version = firefox_versions.LATEST_FIREFOX_DEVEL_VERSION;
+      release = true;
+    };
+    firefox-bin = firefoxVersion {
+      name = "Firefox";
+      version = firefox_versions.LATEST_FIREFOX_VERSION;
+      release = true;
+    };
+    firefox-esr-bin = firefoxVersion {
+      name = "Firefox Esr";
+      version = firefox_versions.FIREFOX_ESR;
+      release = true;
+    };
   };
 
-  # Build Firefox from sources, mostly used to produce an environment for
-  # building Firefox.
-  gecko = super.callPackage ./pkgs/gecko {
-    inherit (self.pythonPackages) setuptools;
-    inherit (self.rustChannels.stable) rust;
+  # Set of packages which used to build developer environment
+  devEnv = (super.shell or {}) // {
+    gecko = super.callPackage ./pkgs/gecko {
+      inherit (self.pythonPackages) setuptools;
+      inherit (self.latest.rustChannels.stable) rust;
+    };
   };
+
+  # Set of packages which are frozen at this given revision of nixpkgs-mozilla.
+  firefox-nightly-bin = super.callPackage ./pkgs/firefox-nightly-bin/default.nix { };
 }
