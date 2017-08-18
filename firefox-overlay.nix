@@ -4,7 +4,6 @@ self: super:
 # firefo.key file is downloaded from:
 # https://gpg.mozilla.org/pks/lookup?search=Mozilla+Software+Releases+%3Crelease%40mozilla.com%3E&op=get
 
-# TODO: Check the signature of the checksum file before using the source.
 let
   # This file is currently maintained manually, if this Nix expression attempt
   # to download the wrong version, this is likely to be the problem.
@@ -72,14 +71,15 @@ let
       mkdir $out
     '';
 
-
   # From the version info, create a fetchurl derivation which will get the
   # sources from the remote.
   fetchVersion = info:
     super.fetchurl {
       inherit (info) url sha512;
-      # add as dependency to force the fetch url function to resolve the
-      # authenticity of the check-sum file before using its sha512 values.
+
+      # This is a fixed derivation, but we still add as a dependency the
+      # verification of the checksum.  Thus, this fetch script can only be
+      # executed once the verifyAuthenticity script finished successfully.
       postFetch = ''
         : # Authenticity Check (${verifyAuthenticity info})
       '';
