@@ -21,8 +21,8 @@ let
 
 
   # Overide the previous derivation, with a different stdenv.
-  builder = name: compiler: system:
-    (import nixpkgsSrc {
+  builder = path: compiler: system:
+    lib.getAttrFromPath path (import nixpkgsSrc {
       inherit system;
       overlays = [
         # Add all packages from nixpkgs-mozilla.
@@ -34,19 +34,19 @@ let
 
         # Use the following overlay to override the requested package from
         # nixpkgs, with a custom stdenv taken from the compilers-overlay.
-        (self: super: if compiler == null then {} else {
-          "${name}" = super."${name}".override {
+        (self: super:
+          if compiler == null then {}
+          else lib.setAttrByPath path ((lib.getAttrFromPath path super).override {
             stdenv = self.customStdenvs."${compiler}";
-          };
-        })
+          }))
       ];
-    })."${name}";
+    });
 
-  build = name: { systems ? supportedSystems, compilers ? null }:
+  build = path: { systems ? supportedSystems, compilers ? null }:
     forEachSystem systems (
       if compilers == null
-      then builder name null
-      else forEachCompiler compilers (builder name)
+      then builder path null
+      else forEachCompiler compilers (builder path)
     );
 
   geckoCompilers = [
@@ -88,9 +88,9 @@ let
     #
     # Which will spawn a new shell where the closure of everything used to build
     # Gecko would be part of the fake-root.
-    gecko = build "gecko" { compilers = geckoCompilers; };
-    servo = build "servo";
-    VidyoDesktop = build "VidyoDesktop";
+    gecko = build [ "devEnv" "gecko" ] { compilers = geckoCompilers; };
+    servo = build [ "servo" ];
+    VidyoDesktop = build [ "VidyoDesktop" ];
   };
 
 in jobs
