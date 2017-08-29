@@ -3,7 +3,7 @@
 
 let
 
-  unwrapped = pkgs.callPackage "${pkgs.path}/pkgs/applications/networking/browsers/firefox-bin" {
+  unwrapped = pkgs.firefox-bin-unwrapped.override {
     inherit (pkgs) stdenv;
     channel = "nightly";
     generated = import (./. + "/sources.nix");
