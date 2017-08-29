@@ -1,10 +1,10 @@
 {
-  version = "56.0a1" + "-" + "20170717100212";
+  version = "57.0a1" + "-" + "20170829";
   sources = [
-    { url = "http://archive.mozilla.org/pub/firefox/nightly/latest-mozilla-central/firefox-56.0a1.en-US.linux-x86_64.tar.bz2";
+    { url = "https://download-installer.cdn.mozilla.net/pub/firefox/nightly/latest-mozilla-central/firefox-57.0a1.en-US.linux-x86_64.tar.bz2";
       locale = "en-US";
       arch = "linux-x86_64";
-      sha512 = "389ada65229fa6225a918041f77eed26cff321d649b8e9206835364e967fe3312dba9f7de9fbea52daf934265b804de447dddee60932d5019f8361884c9f3bde";
+      sha512 = "1ggz8rl7n6j6qx7sira5dmqfy769swxh0dpi4mn6fdc7ppbrbyz58g4a47f6g1ng04y646h75yxdhqjp55nxqcp7v861b004bzf9b88";
     }
   ];
 }
