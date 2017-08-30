@@ -6,6 +6,12 @@ self: super:
 
 # TODO: Check the signature of the checksum file before using the source.
 let
+  # This file is currently maintained manually, if this Nix expression attempt
+  # to download the wrong version, this is likely to be the problem.
+  #
+  # Open a pull request against https://github.com/mozilla-releng/ship-it/ to
+  # update the version, as done in
+  # https://github.com/mozilla-releng/ship-it/pull/182
   firefox_versions = with builtins;
     fromJSON (readFile (fetchurl https://product-details.mozilla.org/1.0/firefox_versions.json));
 
