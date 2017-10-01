@@ -31,13 +31,13 @@ let
       # For versions such as Beta & Release:
       # http://download.cdn.mozilla.net/pub/firefox/releases/55.0b3/SHA256SUMS
       let
-        dir = "http://download.cdn.mozilla.net/pub/firefox/releases/";
+        dir = "http://download.cdn.mozilla.net/pub/firefox/releases/${version}";
         file = "${system}/en-US/firefox-${version}.tar.bz2";
       in rec {
-        chksum = "${dir}/${version}/SHA512SUMS";
+        chksum = "${dir}/SHA512SUMS";
         chksumSig = "${chksum}.asc";
         url = "${dir}/${file}";
-        sha512 = head (match ".*[\n]([0-9a-f]*) ${file}.*" (readFile (fetchurl chksum)));
+        sha512 = head (match ".*[\n]([0-9a-f]*)  ${file}.*" (readFile (fetchurl chksum)));
       }
     else
       # For Nightly versions:
