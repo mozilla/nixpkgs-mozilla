@@ -91,6 +91,9 @@ let
     gecko = build [ "devEnv" "gecko" ] { compilers = geckoCompilers; };
     servo = build [ "servo" ];
     VidyoDesktop = build [ "VidyoDesktop" ];
+    latest = {
+      "firefox-nightly-bin" = build [ "latest" "firefox-nightly-bin" ];
+    };
   };
 
 in jobs
