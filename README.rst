@@ -25,6 +25,25 @@ link the current ``./rust-overlay.nix`` into you ``~/.config/nixpkgs/overlays`` 
 Once this is done, use ``nix-env -iA nixpkgs.latest.rustChannels.nightly.rust`` for
 example. Replace the ``nixpkgs.`` prefix with ``nixos.`` on NixOS.
 
+Using in nix expressions
+------------------------
+
+Example of using in ```shell.nix```:
+
+.. code:: nix
+
+ let
+   moz_overlay = import (builtins.fetchTarball https://github.com/mozilla/nixpkgs-mozilla/archive/master.tar.gz);
+   nixpkgs = import <nixpkgs> { overlays = [ moz_overlay ]; };
+ in
+   with nixpkgs;
+   stdenv.mkDerivation {
+     name = "moz_overlay_shell";
+     buildInputs = [
+       nixpkgs.latest.rustChannels.nightly.rust
+       ];
+   }
+
 TODO
 ----
 
