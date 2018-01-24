@@ -99,9 +99,11 @@ let
   '';
 
   shellHook = ''
+    export MOZCONFIG_TEMPLATE=$PWD/.mozconfig.template
     export MOZBUILD_STATE_PATH=$PWD/.mozbuild
     export CC="${stdenv.cc}/bin/cc";
     export CXX="${stdenv.cc}/bin/c++";
+    ${genMozConfig}
   '';
 
   # propagatedBuildInput should already have applied the "lib.chooseDevOutputs"
