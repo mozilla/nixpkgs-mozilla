@@ -9,13 +9,15 @@
 , setuptools
 , rust # rust & cargo bundled. (otheriwse use pkgs.rust.{rustc,cargo})
 , buildFHSUserEnv # Build a FHS environment with all Gecko dependencies.
-, clang
+, llvmPackages
 , ccache
 }:
 
 let
 
   inherit (lib) updateFromGitHub importJSON optionals inNixShell;
+
+  gcc = if stdenv.cc.isGNU then stdenv.cc.cc else stdenv.cc.cc.gcc;
 
   # Gecko sources are huge, we do not want to import them in the nix-store when
   # we use this expression for making a build environment.
@@ -60,7 +62,11 @@ let
     rust
 
     # For building bindgen
-    clang
+    # Building bindgen is now done with the extra options added by genMozConfig
+    # shellHook, do not include clang directly in order to avoid messing up with
+    # the choices of the compilers.
+
+    # clang
 
     # mach mochitest
     procps
@@ -77,6 +83,20 @@ let
   ] ++ optionals inNixShell [
     valgrind gdb rr ccache
   ];
+
+  genMozConfig = ''
+    cxxLib=$( echo -n ${gcc}/include/c++/* )
+    archLib=$cxxLib/$( ${gcc}/bin/gcc -dumpmachine )
+
+    echo > $MOZCONFIG_TEMPLATE "
+    mk_add_options AUTOCONF=${autoconf213}/bin/autoconf
+    ac_add_options --with-libclang-path=${llvmPackages.clang.cc}/lib
+    ac_add_options --with-clang-path=${llvmPackages.clang}/bin/clang
+    export BINDGEN_CFLAGS=\"-cxx-isystem $cxxLib -isystem $archLib\"
+    export CC="${stdenv.cc}/bin/cc"
+    export CXX="${stdenv.cc}/bin/c++"
+    "
+  '';
 
   shellHook = ''
     export MOZBUILD_STATE_PATH=$PWD/.mozbuild
@@ -113,19 +133,21 @@ stdenv.mkDerivation {
 
   configurePhase = ''
     export MOZBUILD_STATE_PATH=$(pwd)/.mozbuild
-    export MOZ_CONFIG=$(pwd)/.mozconfig
+    export MOZCONFIG=$(pwd)/.mozconfig
     export builddir=$(pwd)/builddir
+    export MOZCONFIG_TEMPLATE=$(pwd)/.mozconfig.template
+    ${genMozConfig}
 
     mkdir -p $MOZBUILD_STATE_PATH $builddir
-    echo > $MOZ_CONFIG "
-    . $src/build/mozconfig.common
 
-    mk_add_options MOZ_OBJDIR=$builddir
-    mk_add_options AUTOCONF=${autoconf213}/bin/autoconf
-    ac_add_options --prefix=$out
+    echo > $MOZCONFIG "
+    # . $src/build/mozconfig.common
+    . $MOZCONFIG_TEMPLATE
+
     ac_add_options --enable-application=browser
+    mk_add_options MOZ_OBJDIR=$builddir
+    ac_add_options --prefix=$out
     ac_add_options --enable-official-branding
-    export AUTOCONF=${autoconf213}/bin/autoconf
     "
   '';
 
