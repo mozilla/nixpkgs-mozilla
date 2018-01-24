@@ -104,6 +104,7 @@ let
     export CC="${stdenv.cc}/bin/cc";
     export CXX="${stdenv.cc}/bin/c++";
     ${genMozConfig}
+    ${builtins.getEnv "NIX_SHELL_HOOK"}
   '';
 
   # propagatedBuildInput should already have applied the "lib.chooseDevOutputs"
