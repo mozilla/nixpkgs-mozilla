@@ -88,18 +88,18 @@ let
     cxxLib=$( echo -n ${gcc}/include/c++/* )
     archLib=$cxxLib/$( ${gcc}/bin/gcc -dumpmachine )
 
-    echo > $MOZCONFIG_TEMPLATE "
+    cat - > $MOZCONFIG <<EOF
     mk_add_options AUTOCONF=${autoconf213}/bin/autoconf
     ac_add_options --with-libclang-path=${llvmPackages.clang.cc}/lib
     ac_add_options --with-clang-path=${llvmPackages.clang}/bin/clang
-    export BINDGEN_CFLAGS=\"-cxx-isystem $cxxLib -isystem $archLib\"
+    export BINDGEN_CFLAGS="-cxx-isystem $cxxLib -isystem $archLib"
     export CC="${stdenv.cc}/bin/cc"
     export CXX="${stdenv.cc}/bin/c++"
-    "
+    EOF
   '';
 
   shellHook = ''
-    export MOZCONFIG_TEMPLATE=$PWD/.mozconfig.template
+    export MOZCONFIG=$PWD/.mozconfig.nix-shell
     export MOZBUILD_STATE_PATH=$PWD/.mozbuild
     export CC="${stdenv.cc}/bin/cc";
     export CXX="${stdenv.cc}/bin/c++";
@@ -138,14 +138,12 @@ stdenv.mkDerivation {
     export MOZBUILD_STATE_PATH=$(pwd)/.mozbuild
     export MOZCONFIG=$(pwd)/.mozconfig
     export builddir=$(pwd)/builddir
-    export MOZCONFIG_TEMPLATE=$(pwd)/.mozconfig.template
     ${genMozConfig}
 
     mkdir -p $MOZBUILD_STATE_PATH $builddir
 
-    echo > $MOZCONFIG "
+    echo >> $MOZCONFIG "
     # . $src/build/mozconfig.common
-    . $MOZCONFIG_TEMPLATE
 
     ac_add_options --enable-application=browser
     mk_add_options MOZ_OBJDIR=$builddir
