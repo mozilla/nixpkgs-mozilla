@@ -86,7 +86,7 @@ let
       pkg = pkgs.${pkgname};
       srcInfo = pkg.target.${target};
     in
-      (super.fetchurl { url = srcInfo.url; sha256 = srcInfo.hash; });
+      (super.fetchurl { url = srcInfo.xz_url; sha256 = srcInfo.xz_hash; });
 
   checkMissingExtensions = pkgs: pkgname: stdenv: extensions:
     let
@@ -127,6 +127,8 @@ let
   #     available = true;
   #     hash = "abce..."; # sha256
   #     url = "https://static.rust-lang.org/dist/....tar.gz";
+  #     xz_hash = "abce..."; # sha256
+  #     xz_url = "https://static.rust-lang.org/dist/....tar.xz";
   #   };
   # }
   #
