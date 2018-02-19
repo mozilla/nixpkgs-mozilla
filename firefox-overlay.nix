@@ -141,8 +141,8 @@ in
 
       # Due to std::ascii::AsciiExt changes in 1.23, Gecko does not compile, so
       # use the latest Rust version before 1.23.
-      rust = (super.rustChannelOf { channel = "stable"; date = "2017-11-22"; }).rust;
-      # inherit (self.latest.rustChannels.stable) rust;
+      # rust = (super.rustChannelOf { channel = "stable"; date = "2017-11-22"; }).rust;
+      inherit (self.latest.rustChannels.stable) rust;
     };
   };
 
