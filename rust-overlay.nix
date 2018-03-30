@@ -5,6 +5,13 @@ self: super:
 let
   fromTOML = (import ./lib/parseTOML.nix).fromTOML;
 
+  parseRustToolchain = file: with builtins;
+    if file == null then
+      {}
+    else
+      let res = match "([a-z]*)-([0-9-]*).*" (readFile file); in
+      { channel = head res; date = head (tail res); };
+
   # See https://github.com/rust-lang-nursery/rustup.rs/blob/master/src/rustup-dist/src/dist.rs
   defaultDistRoot = "https://static.rust-lang.org";
   manifest_v1_url = {
@@ -12,8 +19,11 @@ let
     date ? null,
     staging ? false,
     # A channel can be "nightly", "beta", "stable", "\d{1}.\d{1}.\d{1}", or "\d{1}.\d{2\d{1}".
-    channel ? "nightly"
+    channel ? "nightly",
+    rustToolchain ? null
   }:
+    let args = { inherit channel date; } // parseRustToolchain rustToolchain; in
+    let inherit (args) date channel; in
     if date == null && staging == false
     then "${dist_root}/channel-rust-${channel}"
     else if date != null && staging == false
