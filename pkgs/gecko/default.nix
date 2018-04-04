@@ -90,7 +90,7 @@ let
 
     cat - > $MOZCONFIG <<EOF
     mk_add_options AUTOCONF=${autoconf213}/bin/autoconf
-    ac_add_options --with-libclang-path=${llvmPackages.clang.cc}/lib
+    ac_add_options --with-libclang-path=${llvmPackages.clang.cc.lib}/lib
     ac_add_options --with-clang-path=${llvmPackages.clang}/bin/clang
     export BINDGEN_CFLAGS="-cxx-isystem $cxxLib -isystem $archLib"
     export CC="${stdenv.cc}/bin/cc"
