@@ -8,6 +8,7 @@ with super.lib;
 
   (import ./lib-overlay.nix)
   (import ./rust-overlay.nix)
+  (import ./rr-overlay.nix)
   (import ./firefox-overlay.nix)
   (import ./vidyo-overlay.nix)
   (import ./servo-overlay.nix)
