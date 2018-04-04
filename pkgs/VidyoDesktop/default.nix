@@ -1,6 +1,6 @@
 { stdenv, fetchurl, buildFHSUserEnv, makeWrapper, dpkg, alsaLib,
   alsaUtils, alsaOss, alsaTools, alsaPlugins, libidn, utillinux, mesa_glu, qt4,
-  zlib, patchelf, xorg
+  zlib, patchelf, xorg, libpulseaudio
 }:
 
 let
@@ -25,6 +25,7 @@ in buildFHSUserEnv {
     patchelf dpkg alsaLib alsaUtils alsaOss alsaTools alsaPlugins
     libidn utillinux mesa_glu qt4 zlib xorg.libXext xorg.libXv xorg.libX11
     xorg.libXfixes xorg.libXrandr xorg.libXScrnSaver
+    libpulseaudio
   ];
   extraBuildCommands = ''
     ln -s ${VidyoDesktopDeb}/opt $out/opt
