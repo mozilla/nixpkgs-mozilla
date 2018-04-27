@@ -20,7 +20,7 @@ Rust overlay
 A nixpkgs overlay is provided to contains all of the latest rust releases.
 
 To use the rust overlay run the ``./rust-overlay-install.sh`` command. It will
-link the current ``./rust-overlay.nix`` into you ``~/.config/nixpkgs/overlays`` folders.
+link the current ``./rust-overlay.nix`` into your ``~/.config/nixpkgs/overlays`` folder.
 
 Once this is done, use ``nix-env -iA nixpkgs.latest.rustChannels.nightly.rust`` for
 example. Replace the ``nixpkgs.`` prefix with ``nixos.`` on NixOS.
@@ -115,12 +115,12 @@ environment variable, to reset the ``MOZCONFIG`` environment variable for you.
 TODO
 ----
 
-- setup hydra and have to have binary channels
+- setup hydra to have binary channels
 
 - make sure pinned revisions get updated automatically (if build passes we
   should update revisions in default.nix)
 
-- pin to specific (working) nixpkgs revision (as we do for other sources
+- pin to specific (working) nixpkgs revision (as we do for other sources)
 
 - servo can currently only be used with nix-shell. its build system tries to
   dowload quite few things (it is doing ``pip install`` and ``cargo install``).
