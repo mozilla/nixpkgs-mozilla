@@ -23,6 +23,20 @@ let
   monthOf = with super.lib; yyyymmddhhmmss:
     head (tail (splitString "-" yyyymmddhhmmss));
 
+  # Given SHA512SUMS file contents and file name, extract matching sha512sum.
+  extractSha512Sum = sha512sums: file:
+    with builtins;
+    # Nix 1.x do not have `builtins.split`.
+    # Nix 2.0 have an bug in `builtins.match` (see https://github.com/NixOS/nix/issues/2147).
+    # So I made separate logic for Nix 1.x and Nix 2.0.
+    if builtins ? split then
+      substring 0 128 (head
+        (super.lib.filter
+          (s: isString s && substring 128 (stringLength s) s == "  ${file}")
+          (split "\n" sha512sums)))
+    else
+      head (match ".*[\n]([0-9a-f]*)  ${file}.*" sha512sums);
+
   # The timestamp argument is a yyyy-mm-dd-hh-mm-ss date, which corresponds to
   # one specific version. This is used mostly for bisecting.
   versionInfo = { name, version, release, system ? arch, timestamp ? null }: with builtins;
@@ -36,7 +50,7 @@ let
         chksum = "${dir}/SHA512SUMS";
         chksumSig = "${chksum}.asc";
         url = "${dir}/${file}";
-        sha512 = head (match ".*[\n]([0-9a-f]*)  ${file}.*" (readFile (fetchurl chksum)));
+        sha512 = extractSha512Sum (readFile (fetchurl chksum)) file;
       }
     else
       # For Nightly versions:
