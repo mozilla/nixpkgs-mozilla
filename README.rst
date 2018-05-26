@@ -44,6 +44,22 @@ Example of using in ```shell.nix```:
        ];
    }
 
+Or to retrieve a specific nightly version:
+
+.. code:: nix
+
+ let
+   moz_overlay = import (builtins.fetchTarball https://github.com/mozilla/nixpkgs-mozilla/archive/master.tar.gz);
+   nixpkgs = import <nixpkgs> { overlays = [ moz_overlay ]; };
+ in
+   with nixpkgs;
+   stdenv.mkDerivation {
+     name = "moz_overlay_shell";
+     buildInputs = [
+       (nixpkgs.rustChannelOf { date = "2018-04-11"; channel = "nightly"; }).rust
+       ];
+   }
+
 Gecko Development Environment
 -----------------------------
 
