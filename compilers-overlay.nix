@@ -76,6 +76,8 @@ let
     clang37 = llvmPackages_37;
     clang38 = llvmPackages_38; # not working yet.
     gcc = gcc;
+    gcc6 = gcc6;
+    gcc5 = gcc5;
     gcc49 = gcc49;
     gcc48 = gcc48;
     gcc474 = chgCompilerSource gcc473 "gcc-4.7.4" (fetchurl {
