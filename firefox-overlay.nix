@@ -151,8 +151,8 @@ in
   # Set of packages which used to build developer environment
   devEnv = (super.shell or {}) // {
     gecko = super.callPackage ./pkgs/gecko {
-      inherit (self.python3Packages) setuptools;
-      pythonFull = self.python3Full;
+      inherit (self.python35Packages) setuptools;
+      pythonFull = self.python35Full;
 
       # Due to std::ascii::AsciiExt changes in 1.23, Gecko does not compile, so
       # use the latest Rust version before 1.23.
