@@ -55,6 +55,8 @@ let
     "clang37"
     "clang38"
     "gcc"
+    "gcc6"
+    "gcc5"
     "gcc49"
     "gcc48"
     #"gcc474"
