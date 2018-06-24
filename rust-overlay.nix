@@ -102,7 +102,7 @@ let
     in
       extensionsToInstall;
 
-  getSrcs = pkgs: pkgname: targets: extensions: targetExtensions: stdenv: fetchurl:
+  getComponents = pkgs: pkgname: targets: extensions: targetExtensions: stdenv: fetchurl:
     let
       inherit (builtins) head map;
       inherit (super.lib) flatten remove subtractLists unique;
@@ -118,7 +118,82 @@ let
         if missingTargets == [] then pkgsTuples else throw ''
           While compiling ${pkgname}: the target ${head missingTargets} is not available for any package.'';
     in
-      map (tuple: (getFetchUrl pkgs tuple.name tuple.target stdenv fetchurl)) pkgsTuplesToInstall;
+      map (tuple: { name = tuple.name; src = (getFetchUrl pkgs tuple.name tuple.target stdenv fetchurl); }) pkgsTuplesToInstall;
+
+  installComponents = stdenv: namesAndSrcs:
+    let
+      inherit (builtins) map;
+      installComponent = name: src:
+        stdenv.mkDerivation {
+          inherit name;
+          inherit src;
+          # (@nbp) TODO: Check on Windows and Mac.
+          # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
+          installPhase = ''
+            patchShebangs install.sh
+            CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
+
+            setInterpreter() {
+              local dir="$1"
+              [ -e "$dir" ] || return 0
+
+              header "Patching interpreter of ELF executables and libraries in $dir"
+              local i
+              while IFS= read -r -d ''$'\0' i; do
+                if [[ "$i" =~ .build-id ]]; then continue; fi
+                if ! isELF "$i"; then continue; fi
+                echo "setting interpreter of $i"
+                patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" "$i" || true
+              done < <(find "$dir" -type f -print0)
+            }
+
+            setInterpreter $out
+          '';
+
+          postFixup = ''
+            # Function moves well-known files from etc/
+            handleEtc() {
+              local oldIFS="$IFS"
+
+              # Directories we are aware of, given as substitution lists
+              for paths in \
+                "etc/bash_completion.d","share/bash_completion/completions","etc/bash_completions.d","share/bash_completions/completions";
+                do
+                # Some directoties may be missing in some versions. If so we just skip them.
+                # See https://github.com/mozilla/nixpkgs-mozilla/issues/48 for more infomation.
+                if [ ! -e $paths ]; then continue; fi
+
+                IFS=","
+                set -- $paths
+                IFS="$oldIFS"
+
+                local orig_path="$1"
+                local wanted_path="$2"
+
+                # Rename the files
+                if [ -d ./"$orig_path" ]; then
+                  mkdir -p "$(dirname ./"$wanted_path")"
+                fi
+                mv -v ./"$orig_path" ./"$wanted_path"
+
+                # Fail explicitly if etc is not empty so we can add it to the list and/or report it upstream
+                rmdir ./etc || {
+                  echo Installer tries to install to /etc:
+                  find ./etc
+                  exit 1
+                }
+              done
+            }
+
+            if [ -d "$out"/etc ]; then
+              pushd "$out"
+              handleEtc
+              popd
+            fi
+          '';
+        };
+    in
+      map (nameAndSrc: (installComponent nameAndSrc.name nameAndSrc.src)) namesAndSrcs;
 
   # Manifest files are organized as follow:
   # { date = "2017-03-03";
@@ -160,80 +235,21 @@ let
         let
           version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
           version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
-          srcs = getSrcs pkgs.pkg name targets extensions targetExtensions stdenv fetchurl;
+          namesAndSrcs = getComponents pkgs.pkg name targets extensions targetExtensions stdenv fetchurl;
+          components = installComponents stdenv namesAndSrcs;
+          componentsOuts = builtins.map (comp: (super.lib.strings.escapeNixString (super.lib.getOutput "out" comp))) components;
         in
-          stdenv.mkDerivation {
+          super.pkgs.symlinkJoin {
             name = name + "-" + version;
-            inherit srcs;
-            sourceRoot = ".";
-            # (@nbp) TODO: Check on Windows and Mac.
-            # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
-            installPhase = ''
-              for i in * ; do
-                if [ -d "$i" ]; then
-                  cd $i
-                  patchShebangs install.sh
-                  CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
-                  cd ..
-                fi
-              done
-
-              setInterpreter() {
-                local dir="$1"
-                [ -e "$dir" ] || return 0
-
-                header "Patching interpreter of ELF executables and libraries in $dir"
-                local i
-                while IFS= read -r -d ''$'\0' i; do
-                  if [[ "$i" =~ .build-id ]]; then continue; fi
-                  if ! isELF "$i"; then continue; fi
-                  echo "setting interpreter of $i"
-                  patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" "$i" || true
-                done < <(find "$dir" -type f -print0)
-              }
-
-              setInterpreter $out
-            '';
-
-            postFixup = ''
-              # Function moves well-known files from etc/
-              handleEtc() {
-                local oldIFS="$IFS"
-
-                # Directories we are aware of, given as substitution lists
-                for paths in \
-                  "etc/bash_completion.d","share/bash_completion/completions","etc/bash_completions.d","share/bash_completions/completions";
-                  do
-                  # Some directoties may be missing in some versions. If so we just skip them.
-                  # See https://github.com/mozilla/nixpkgs-mozilla/issues/48 for more infomation.
-                  if [ ! -e $paths ]; then continue; fi
-
-                  IFS=","
-                  set -- $paths
-                  IFS="$oldIFS"
-
-                  local orig_path="$1"
-                  local wanted_path="$2"
-
-                  # Rename the files
-                  if [ -d ./"$orig_path" ]; then
-                    mkdir -p "$(dirname ./"$wanted_path")"
-                  fi
-                  mv -v ./"$orig_path" ./"$wanted_path"
-
-                  # Fail explicitly if etc is not empty so we can add it to the list and/or report it upstream
-                  rmdir ./etc || {
-                    echo Installer tries to install to /etc:
-                    find ./etc
-                    exit 1
-                  }
-                done
-              }
-
-              if [ -d "$out"/etc ]; then
-                pushd "$out"
-                handleEtc
-                popd
+            paths = components;
+            postBuild = ''
+	      # If rustc is in the derivation, we need to copy the rustc
+	      # executable into the final derivation. This is required
+	      # for making rustc find the correct SYSROOT.
+              if [ -e "$out/bin/rustc" ]; then
+                RUSTC_PATH=$(realpath -e $out/bin/rustc)
+                rm $out/bin/rustc
+                cp $RUSTC_PATH $out/bin/rustc
               fi
             '';
 
