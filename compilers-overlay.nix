@@ -35,10 +35,12 @@ let
   # latest header files from GCC, which are not supported by clang, because
   # clang implement a different set of locking primitives than GCC.  This
   # expression is used to wrap clang with a matching verion of the libc++.
-  maybeWrapClang = cc:
+  maybeWrapClang = cc: cc;
+  /*
     if cc ? clang
     then clangWrapCC cc
     else cc;
+    */
 
   clangWrapCC = llvmPackages:
     let libcxx =
@@ -62,6 +64,7 @@ let
 
   buildWithCompiler = cc:
     super.stdenvAdapters.overrideCC self.stdenv (maybeWrapClang cc);
+
   chgCompilerSource = cc: name: src:
     cc.override (conf:
       if conf ? gcc then # Nixpkgs 14.12
@@ -71,10 +74,10 @@ let
     );
 
   compilersByName = with self; {
-    clang = llvmPackages;
-    clang36 = llvmPackages_36;
-    clang37 = llvmPackages_37;
-    clang38 = llvmPackages_38; # not working yet.
+    clang = llvmPackages.clang;
+    clang36 = llvmPackages_36.clang;
+    clang37 = llvmPackages_37.clang;
+    clang38 = llvmPackages_38.clang; # not working yet.
     gcc = gcc;
     gcc6 = gcc6;
     gcc5 = gcc5;
