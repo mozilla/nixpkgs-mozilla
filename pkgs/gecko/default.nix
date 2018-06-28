@@ -11,6 +11,8 @@
 , buildFHSUserEnv # Build a FHS environment with all Gecko dependencies.
 , llvmPackages
 , ccache
+
+, zlib, xorg
 }:
 
 let
@@ -112,14 +114,15 @@ let
   pullAllInputs = inputs:
     inputs ++ lib.concatMap (i: pullAllInputs (i.propagatedNativeBuildInputs or [])) inputs;
 
-  fhs = buildFHSUserEnv {
+  fhs = buildFHSUserEnv rec {
     name = "gecko-deps-fhs";
-    targetPkgs = _: pullAllInputs (lib.chooseDevOutputs (buildInputs ++ [ stdenv.cc ]));
-    multiPkgs = null;
+    targetPkgs = _: pullAllInputs (lib.chooseDevOutputs (buildInputs ++ [ stdenv.cc zlib xorg.libXinerama xorg.libXxf86vm ]));
+    multiPkgs = null; #targetPkgs;
     extraOutputsToInstall = [ "share" ];
     profile = ''
       # build-fhs-userenv/env.nix adds it, but causes 'ls' to SEGV.
       unset LD_LIBRARY_PATH;
+      export LD_LIBRARY_PATH=/lib/;
       export IN_NIX_SHELL=1
       export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/share/pkgconfig
       ${shellHook}
