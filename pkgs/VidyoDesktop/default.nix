@@ -1,9 +1,12 @@
-{ stdenv, fetchurl, buildFHSUserEnv, makeWrapper, dpkg, alsaLib,
-  alsaUtils, alsaOss, alsaTools, alsaPlugins, libidn, libGL, utillinux, mesa_glu, qt4,
-  zlib, patchelf, xorg, libpulseaudio
+{ stdenv, fetchurl, buildFHSUserEnv, makeWrapper, dpkg, alsaLib
+, alsaUtils, alsaOss, alsaTools, alsaPlugins, libGL, utillinux, mesa_glu, qt4
+, zlib, patchelf, xorg, libpulseaudio
+, callPackage
+#, libidn
 }:
 
 let
+  libidn = callPackage ./libidn.nix {};
   vidyoVersion = "3.6.3";
   vidyoBuild = "017";
   vidyoVersionUnderscore = builtins.replaceStrings ["."] ["_"] vidyoVersion;
