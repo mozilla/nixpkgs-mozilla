@@ -12,5 +12,6 @@ with super.lib;
   (import ./firefox-overlay.nix)
   (import ./vidyo-overlay.nix)
   (import ./servo-overlay.nix)
+  (import ./git-cinnabar-overlay.nix)
 
 ]) self
