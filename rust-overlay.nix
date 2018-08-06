@@ -286,6 +286,11 @@ rec {
     };
   };
 
+  # Helper builder
+  rustChannelOfTargets = channel: date: targets:
+    (rustChannelOf { inherit channel date; })
+      .rust.override { inherit targets; };
+
   # For backward compatibility
   rustChannels = latest.rustChannels;
 
