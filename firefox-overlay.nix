@@ -79,7 +79,7 @@ let
       CHKSUM_ASC = builtins.fetchurl info.chksumSig;
     } ''
       HOME=`mktemp -d`
-      set -eux
+      set -eu
       cat ${./firefox.key} | gpg --import
       gpgv --keyring=$HOME/.gnupg/pubring.kbx $CHKSUM_ASC $CHKSUM_FILE
       mkdir $out
