@@ -153,6 +153,9 @@ in
     gecko = super.callPackage ./pkgs/gecko {
       inherit (self.python35Packages) setuptools;
       pythonFull = self.python35Full;
+      nodejs =
+        if builtins.compareVersions self.nodejs.name "nodejs-8.11.3" < 0
+        then self.nodejs-8_x else self.nodejs;
 
       # Due to std::ascii::AsciiExt changes in 1.23, Gecko does not compile, so
       # use the latest Rust version before 1.23.
@@ -163,4 +166,8 @@ in
 
   # Set of packages which are frozen at this given revision of nixpkgs-mozilla.
   firefox-nightly-bin = super.callPackage ./pkgs/firefox-nightly-bin/default.nix { };
+
+  # Use rust-cbindgen imported from Nixpkgs (August 2018) unless the current
+  # version of Nixpkgs already packages a version of rust-cbindgen.
+  rust-cbindgen = super.rust-cbindgen or super.callPackage ./pkgs/cbindgen { };
 }
