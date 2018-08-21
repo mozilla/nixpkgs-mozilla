@@ -13,6 +13,8 @@
 , ccache
 
 , zlib, xorg
+, rust-cbindgen
+, nodejs
 }:
 
 let
@@ -81,6 +83,12 @@ let
 
     # Useful for getting notification at the end of the build.
     libnotify
+
+    # cbindgen is used to generate C bindings for WebRender.
+    rust-cbindgen
+
+    # NodeJS is used for tooling around JS development.
+    nodejs
 
   ] ++ optionals inNixShell [
     valgrind gdb rr ccache
