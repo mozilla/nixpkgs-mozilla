@@ -40,6 +40,7 @@ let
     "x86_64-linux"    = "x86_64-unknown-linux-gnu";
     "armv5tel-linux"  = "arm-unknown-linux-gnueabi";
     "armv6l-linux"    = "arm-unknown-linux-gnueabi";
+    "armv7a-android"  = "armv7-linux-androideabi";
     "armv7l-linux"    = "armv7-unknown-linux-gnueabihf";
     "aarch64-linux"   = "aarch64-unknown-linux-gnu";
     "mips64el-linux"  = "mips64el-unknown-linux-gnuabi64";
