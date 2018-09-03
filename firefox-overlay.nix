@@ -169,5 +169,5 @@ in
 
   # Use rust-cbindgen imported from Nixpkgs (August 2018) unless the current
   # version of Nixpkgs already packages a version of rust-cbindgen.
-  rust-cbindgen = super.rust-cbindgen or super.callPackage ./pkgs/cbindgen { };
+  rust-cbindgen = super.rust-cbindgen or (super.callPackage ./pkgs/cbindgen { });
 }
