@@ -4,14 +4,6 @@ self: super:
 
 with super.lib;
 
-(foldl' (flip extends) (_: super) [
-
-  (import ./lib-overlay.nix)
-  (import ./rust-overlay.nix)
-  (import ./rr-overlay.nix)
-  (import ./firefox-overlay.nix)
-  (import ./vidyo-overlay.nix)
-  (import ./servo-overlay.nix)
-  (import ./git-cinnabar-overlay.nix)
-
-]) self
+(foldl' (flip extends) (_: super)
+  (map import (import ./overlays.nix)))
+  self
