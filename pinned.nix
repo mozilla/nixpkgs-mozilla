@@ -11,7 +11,6 @@
 , overlays ? []
 , system ? null
 , geckoSrc ? null
-, servoSrc ? null
 }:
 
 # Pin a specific version of Nixpkgs.

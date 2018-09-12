@@ -7,7 +7,6 @@ Gathering nix efforts in one repository.
 Current packages
 ----------------
 
-- servo (https://github.com/servo/servo)
 - gecko (https://github.com/mozilla/gecko-dev)
 - firefox-dev-bin (`Firefox Developer Edition <https://www.mozilla.org/en-US/firefox/developer/>`)
 - VidyoDesktop ()
@@ -137,10 +136,6 @@ TODO
   should update revisions in default.nix)
 
 - pin to specific (working) nixpkgs revision (as we do for other sources)
-
-- servo can currently only be used with nix-shell. its build system tries to
-  dowload quite few things (it is doing ``pip install`` and ``cargo install``).
-  it should be possible to replace that with nix
 
 - can we make this work on darwin as well?
 
