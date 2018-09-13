@@ -143,7 +143,10 @@ let
                 if [[ "$i" =~ .build-id ]]; then continue; fi
                 if ! isELF "$i"; then continue; fi
                 echo "setting interpreter of $i"
-                patchelf --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" "$i" || true
+                patchelf \
+                  --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+                  --add-needed ${stdenv.cc.cc.lib}/lib/libstdc++.so.6 \
+                  "$i" || true
               done < <(find "$dir" -type f -print0)
             }
 
@@ -191,6 +194,8 @@ let
               popd
             fi
           '';
+
+          dontStrip = true;
         };
     in
       map (nameAndSrc: (installComponent nameAndSrc.name nameAndSrc.src)) namesAndSrcs;
