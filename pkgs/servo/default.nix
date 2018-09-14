@@ -8,7 +8,7 @@ let
 
   inherit (lib) updateFromGitHub;
   inherit (pkgs) fetchFromGitHub curl dbus fontconfig freeglut freetype
-    gperf libxmi llvm mesa mesa_glu openssl pkgconfig makeWrapper writeText
+    gperf libxmi llvm mesa_glu openssl pkgconfig makeWrapper writeText
     xorg;
   inherit (pkgs.stdenv) mkDerivation;
   inherit (pkgs.lib) importJSON;
@@ -69,7 +69,7 @@ in mkDerivation rec {
     gperf
     libxmi
     llvm
-    mesa
+    (pkgs.mesa or null)
     mesa_glu
     openssl
     pkgconfig
