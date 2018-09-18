@@ -157,6 +157,11 @@ in
         if builtins.compareVersions self.nodejs.name "nodejs-8.11.3" < 0
         then self.nodejs-8_x else self.nodejs;
 
+      rust-cbindgen =
+        if !(self ? "rust-cbindgen") then self.rust-cbindgen-0_6_2
+        else if builtins.compareVersions self.rust-cbindgen.name "rust-cbindgen-0.6.2" < 0
+        then self.rust-cbindgen-0_6_2 else self.rust-cbindgen;
+
       # Due to std::ascii::AsciiExt changes in 1.23, Gecko does not compile, so
       # use the latest Rust version before 1.23.
       # rust = (super.rustChannelOf { channel = "stable"; date = "2017-11-22"; }).rust;
@@ -167,7 +172,7 @@ in
   # Set of packages which are frozen at this given revision of nixpkgs-mozilla.
   firefox-nightly-bin = super.callPackage ./pkgs/firefox-nightly-bin/default.nix { };
 
-  # Use rust-cbindgen imported from Nixpkgs (August 2018) unless the current
+  # Use rust-cbindgen imported from Nixpkgs (September 2018) unless the current
   # version of Nixpkgs already packages a version of rust-cbindgen.
-  rust-cbindgen = super.rust-cbindgen or (super.callPackage ./pkgs/cbindgen { });
+  rust-cbindgen-0_6_2 = super.callPackage ./pkgs/cbindgen { };
 }
