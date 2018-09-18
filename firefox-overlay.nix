@@ -174,5 +174,10 @@ in
 
   # Use rust-cbindgen imported from Nixpkgs (September 2018) unless the current
   # version of Nixpkgs already packages a version of rust-cbindgen.
-  rust-cbindgen-0_6_2 = super.callPackage ./pkgs/cbindgen { };
+  rust-cbindgen-0_6_2 = super.callPackage ./pkgs/cbindgen {
+    rustPlatform = super.makeRustPlatform {
+      cargo = self.latest.rustChannels.stable.rust;
+      rustc = self.latest.rustChannels.stable.rust;
+    };
+  };
 }
