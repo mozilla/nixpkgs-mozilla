@@ -120,6 +120,7 @@ let
     export BINDGEN_CFLAGS="-cxx-isystem $cxxLib -isystem $archLib"
     ${genMozConfig}
     ${builtins.getEnv "NIX_SHELL_HOOK"}
+    unset AS
   '';
 
   # propagatedBuildInput should already have applied the "lib.chooseDevOutputs"
@@ -151,6 +152,7 @@ stdenv.mkDerivation {
   tracePhases = true;
 
   configurePhase = ''
+    unset AS; # Set to CC when configured.
     export MOZBUILD_STATE_PATH=$(pwd)/.mozbuild
     export MOZCONFIG=$(pwd)/.mozconfig
     export builddir=$(pwd)/builddir
