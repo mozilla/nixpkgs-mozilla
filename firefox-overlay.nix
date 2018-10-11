@@ -1,7 +1,7 @@
 # This file provide the latest binary versions of Firefox published by Mozilla.
 self: super:
 
-# firefo.key file is downloaded from:
+# firefox.key file is downloaded from:
 # https://gpg.mozilla.org/pks/lookup?search=Mozilla+Software+Releases+%3Crelease%40mozilla.com%3E&op=get
 
 let
