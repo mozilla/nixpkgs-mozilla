@@ -3,6 +3,7 @@
 , python
 , perl
 , gettext
+, git
 , mercurial
 }:
 
@@ -12,7 +13,7 @@
 # NOTE: This package only provides git-cinnabar tools, as a git users might want
 # to have additional commands not provided by this forked version of git-core.
 stdenv.mkDerivation rec {
-  version = "0.5.0b3";
+  version = "0.5.0";
   name = "git-cinnabar-${version}";
   src = fetchFromGitHub {
     owner = "glandium";
@@ -20,9 +21,9 @@ stdenv.mkDerivation rec {
     inherit name;
     rev = version; # tag name
     fetchSubmodules = true;
-    sha256 = "02fl3lzf7cnns88pkc8npr77dd7mm38h859q0fimgd21gw84xj01";
+    sha256 = "1yki44qzh3ca41xv4ch3fkxalsj707q2az0yjb917q3mpavxsx9q";
   };
-  buildInputs = [ autoconf python gettext ];
+  buildInputs = [ autoconf python gettext git ];
 
   ZLIB_PATH = zlib;
   ZLIB_DEV_PATH = zlib.dev;
@@ -36,6 +37,10 @@ stdenv.mkDerivation rec {
     export ZLIB_DEV_PATH;
     substituteInPlace git-core/Makefile --replace \
       '$(ZLIB_PATH)/include' '$(ZLIB_DEV_PATH)/include'
+    # Comment out calls to git to try to verify that git-core is up to date
+    substituteInPlace Makefile \
+      --replace '$(eval $(call exec,git' '# $(eval $(call exec,git'
+
 
     export PERL_PATH;
     export NO_TCLTK
@@ -43,6 +48,8 @@ stdenv.mkDerivation rec {
   '';
 
   makeFlags = "prefix=\${out}";
+
+  installTargets = "git-install";
 
   postInstall =
     let mercurial-py = mercurial + "/" + mercurial.python.sitePackages; in ''
