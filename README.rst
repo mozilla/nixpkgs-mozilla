@@ -8,8 +8,31 @@ Current packages
 ----------------
 
 - gecko (https://github.com/mozilla/gecko-dev)
-- firefox-dev-bin (`Firefox Developer Edition <https://www.mozilla.org/en-US/firefox/developer/>`)
+- firefox-bin variants including Nightly
 - VidyoDesktop ()
+
+firefox-bin variants
+--------------------
+
+Nixpkgs already has definitions for `firefox
+<https://github.com/NixOS/nixpkgs/blob/246d2848ff657d56fcf2d8596709e8869ce8616a/pkgs/applications/networking/browsers/firefox/packages.nix>`_,
+which is built from source, as well as `firefox-bin
+<https://github.com/NixOS/nixpkgs/blob/ba2fe3c9a626a8fb845c786383b8b23ad8355951/pkgs/applications/networking/browsers/firefox-bin/default.nix>`_,
+which is the binary Firefox version built by Mozilla.
+
+The ``firefox-overlay.nix`` in this repository adds definitions for
+some other firefox-bin variants that Mozilla ships:
+``firefox-nightly-bin``, ``firefox-beta-bin``, and
+``firefox-esr-bin``. All are exposed under a ``latest`` attribute,
+e.g. ``latest.firefox-nightly-bin``.
+
+Unfortunately, these variants do not auto-update, and you may see some
+annoying pop-ups complaining about this.
+
+Note that all the ``-bin`` packages are "unfree" (because of the
+Firefox trademark, held by Mozilla), so you will need to set
+``nixpkgs.config.allowUnfree`` in order to use them. More info `here
+<https://nixos.wiki/wiki/FAQ#How_can_I_install_a_proprietary_or_unfree_package.3F>`_.
 
 Rust overlay
 ------------
@@ -59,18 +82,42 @@ Or to retrieve a specific nightly version:
        ];
    }
 
-Gecko Development Environment
------------------------------
+Firefox Development Environment
+-------------------------------
 
-The ``firefox-overlay.nix`` provides a development environment to build Firefox
-from its sources, also known as Gecko.
+This repository provides several tools to facilitate development on
+Firefox. Firefox is built on an engine called Gecko, which lends its
+name to some of the files and derivations in this repo.
 
-To build Gecko from its sources, it is best to have a local checkout of Gecko,
-and to build it with a ``nix-shell``. You can checkout Gecko, either using
-mercurial, or git.
+Checking out Firefox
+~~~~~~~~~~~~~~~~~~~~
 
-Once you have finished the checkout gecko, you should enter the ``nix-shell``
-using the ``gecko.<arch>.<cc>`` attribute of the ``release.nix`` file provided
+To build Firefox from source, it is best to have a local checkout of
+``mozilla-central``. ``mozilla-central`` is hosted in Mercurial, but
+some people prefer to access it using ``git`` and
+``git-cinnabar``. The tools in this repo support either using
+mercurial or git.
+
+This repository provides a ``git-cinnabar-overlay.nix`` which defines
+a ``git-cinnabar`` derivation. This overlay can be used to install
+``git-cinnabar``, either using ``nix-env`` or as part of a system-wide
+``configuration.nix``.
+
+Building Firefox
+~~~~~~~~~~~~~~~~
+
+The ``firefox-overlay.nix`` provides an environment to build Firefox
+from its sources, once you have finished the checkout of
+``mozilla-central``. You can use ``nix-shell`` to enter this
+environment to launch ``mach`` commands to build Firefox and test your
+build.
+
+Some debugging tools are available in this environment as well, but
+other development tools (such as those used to submit changes for
+review) are outside the scope of this environment.
+
+The ``nix-shell`` environment is available in the
+``gecko.<arch>.<cc>`` attribute of the ``release.nix`` file provided
 in this repository.
 
 The ``<arch>`` attribute is either ``x86_64-linux`` or ``i686-linux``. The first
@@ -85,7 +132,7 @@ in ``release.nix``. This compiler would only be used for compiling Gecko, and
 the rest of the toolchain is compiled against the default ``stdenv`` of the
 architecture.
 
-When first enterring the ``nix-shell``, the toolchain will pull and build all
+When first entering the ``nix-shell``, the toolchain will pull and build all
 the dependencies necessary to build Gecko, this includes might take some time.
 This work will not be necessary the second time, unless you use a different
 toolchain or architecture.
@@ -101,7 +148,7 @@ toolchain or architecture.
   [~/mozilla-central] python ./mach run
     ... run firefox
 
-When enterring the ``nix-shell``, the ``MOZCONFIG`` environment variable is set
+When entering the ``nix-shell``, the ``MOZCONFIG`` environment variable is set
 to a local file, named ``.mozconfig.nix-shell``, created each time you enter the
 ``nix-shell``. You can create your own ``.mozconfig`` file which extends the
 default one, with your own options.
@@ -118,7 +165,7 @@ default one, with your own options.
   [~/mozilla-central] export MOZCONFIG=$(pwd)/.mozconfig
   [~/mozilla-central] python ./mach build
 
-To avoid repeating your-self, you can also rely on the ``NIX_SHELL_HOOK``
+To avoid repeating yourself, you can also rely on the ``NIX_SHELL_HOOK``
 environment variable, to reset the ``MOZCONFIG`` environment variable for you.
 
 .. code:: sh
