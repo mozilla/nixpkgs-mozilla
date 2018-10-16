@@ -174,6 +174,45 @@ environment variable, to reset the ``MOZCONFIG`` environment variable for you.
   ~/mozilla-central$ nix-shell ../nixpkgs-mozilla/release.nix -A gecko.x86_64-linux.gcc --pure
   [~/mozilla-central] python ./mach build
 
+Submitting Firefox patches
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Firefox development happens in `Mozilla Phabricator
+<https://phabricator.services.mozilla.com/>`_. Mozilla Phabricator
+docs are `here
+<https://moz-conduit.readthedocs.io/en/latest/phabricator-user.html>`_.
+
+To get your commits into Phabricator, some options include:
+
+- Arcanist, the upstream tool for interacting with
+  Phabricator. Arcanist is packaged in nixpkgs already; you can find
+  it in `nixos.arcanist`. Unfortunately, as of this writing, upstream
+  Arcanist does not support ``git-cinnabar`` (according to `the
+  "Setting up Arcanist"
+  <https://moz-conduit.readthedocs.io/en/latest/phabricator-user.html#setting-up-arcanist>`_
+  documentation). `Mozilla maintains a fork of Arcanist
+  <https://github.com/mozilla-conduit/arcanist>`_ but it isn't yet
+  packaged. (PRs welcome.)
+
+- `moz-phab <https://github.com/mozilla-conduit/review>`_, a small
+  Python script that wraps Arcanist to try to handle commit series
+  better than stock Arcanist. Because it wraps Arcanist, it suffers
+  from the same problems that Arcanist does if you use git-cinnabar,
+  and may work better if you use Mozilla's Arcanist fork.  ``moz-phab``
+  isn't packaged yet. (PRs welcome.)
+
+- `phlay <https://github.com/mystor/phlay>`_, a small Python script
+  that speaks to the Phabricator API directly. This repository ships a
+  ``phlay-overlay.nix`` that you can use to make ``phlay`` available
+  in a nix-shell or nix-env.
+
+Note: although the ``nix-shell`` from the previous section may have
+all the tools you would normally use to do Firefox development, it
+isn't recommended that you use that shell for anything besides tasks
+that involve running ``mach``. Other development tasks such as
+committing code and submitting patches to code review are best handled
+in a separate nix-shell.
+
 TODO
 ----
 
