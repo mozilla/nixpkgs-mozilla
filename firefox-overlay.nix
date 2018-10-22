@@ -158,9 +158,9 @@ in
         then self.nodejs-8_x else self.nodejs;
 
       rust-cbindgen =
-        if !(self ? "rust-cbindgen") then self.rust-cbindgen-0_6_2
-        else if builtins.compareVersions self.rust-cbindgen.name "rust-cbindgen-0.6.2" < 0
-        then self.rust-cbindgen-0_6_2 else self.rust-cbindgen;
+        if !(self ? "rust-cbindgen") then self.rust-cbindgen-latest
+        else if builtins.compareVersions self.rust-cbindgen.name "rust-cbindgen-0.6.4" < 0
+        then self.rust-cbindgen-latest else self.rust-cbindgen;
 
       # Due to std::ascii::AsciiExt changes in 1.23, Gecko does not compile, so
       # use the latest Rust version before 1.23.
@@ -174,7 +174,7 @@ in
 
   # Use rust-cbindgen imported from Nixpkgs (September 2018) unless the current
   # version of Nixpkgs already packages a version of rust-cbindgen.
-  rust-cbindgen-0_6_2 = super.callPackage ./pkgs/cbindgen {
+  rust-cbindgen-latest = super.callPackage ./pkgs/cbindgen {
     rustPlatform = super.makeRustPlatform {
       cargo = self.latest.rustChannels.stable.rust;
       rustc = self.latest.rustChannels.stable.rust;
