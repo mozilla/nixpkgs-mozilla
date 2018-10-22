@@ -7,8 +7,8 @@
 
 let
   libidn = callPackage ./libidn.nix {};
-  vidyoVersion = "3.6.3";
-  vidyoBuild = "017";
+  vidyoVersion = "3.3.0";
+  vidyoBuild = "027";
   vidyoVersionUnderscore = builtins.replaceStrings ["."] ["_"] vidyoVersion;
   VidyoDesktopDeb = stdenv.mkDerivation {
     name = "VidyoDesktopDeb-${vidyoVersion}";
@@ -16,7 +16,7 @@ let
     inherit dpkg;
     src = fetchurl {
       url = "https://v.mozilla.com/upload/VidyoDesktopInstaller-ubuntu64-TAG_VD_${vidyoVersionUnderscore}_${vidyoBuild}.deb";
-      sha256 = "01spq6r49myv82fdimvq3ykwb1lc5bymylzcydfdp9xz57f5a94x";
+      sha256 = "045f9z421qpcm45bmh98f3h7bd46rdjvcbdpv4rlw9ribncv66dc";
     };
     buildInputs = [ makeWrapper ];
   };
