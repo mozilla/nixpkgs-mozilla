@@ -169,9 +169,6 @@ in
     };
   };
 
-  # Set of packages which are frozen at this given revision of nixpkgs-mozilla.
-  firefox-nightly-bin = super.callPackage ./pkgs/firefox-nightly-bin/default.nix { };
-
   # Use rust-cbindgen imported from Nixpkgs (September 2018) unless the current
   # version of Nixpkgs already packages a version of rust-cbindgen.
   rust-cbindgen-latest = super.callPackage ./pkgs/cbindgen {
