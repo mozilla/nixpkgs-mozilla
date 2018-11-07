@@ -170,6 +170,7 @@ in
       # use the latest Rust version before 1.23.
       # rust = (super.rustChannelOf { channel = "stable"; date = "2017-11-22"; }).rust;
       inherit (self.latest.rustChannels.stable) rust;
+      valgrind = self.valgrind-3_14;
     };
   };
 
@@ -181,4 +182,12 @@ in
       rustc = self.latest.rustChannels.stable.rust;
     };
   };
+
+  valgrind-3_14 = super.valgrind.overrideAttrs (attrs: {
+    name = "valgrind-3.14.0";
+    src = super.fetchurl {
+      url = "http://www.valgrind.org/downloads/valgrind-3.14.0.tar.bz2";
+      sha256 = "19ds42jwd89zrsjb94g7gizkkzipn8xik3xykrpcqxylxyzi2z03";
+    };
+  });
 }
