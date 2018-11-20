@@ -142,6 +142,7 @@ let
           # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
           installPhase = ''
             patchShebangs install.sh
+            sed -i "s/llvm-tools-preview//" components
             CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
 
             setInterpreter() {
