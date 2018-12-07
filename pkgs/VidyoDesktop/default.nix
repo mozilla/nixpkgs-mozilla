@@ -15,7 +15,7 @@ let
     builder = ./builder.sh;
     inherit dpkg;
     src = fetchurl {
-      url = "https://vidyoportal.cern.ch/upload/VidyoDesktopInstaller-ubuntu64-TAG_VD_${vidyoVersionUnderscore}_${vidyoBuild}.deb";
+      url = "https://client-downloads.vidyocloud.com/VidyoDesktopInstaller-ubuntu64-TAG_VD_${vidyoVersionUnderscore}_${vidyoBuild}.deb";
       sha256 = "01spq6r49myv82fdimvq3ykwb1lc5bymylzcydfdp9xz57f5a94x";
     };
     buildInputs = [ makeWrapper ];
