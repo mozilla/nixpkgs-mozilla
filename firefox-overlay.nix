@@ -42,9 +42,9 @@ let
   versionInfo = { name, version, release, system ? arch, timestamp ? null }: with builtins;
     if release then
       # For versions such as Beta & Release:
-      # http://download.cdn.mozilla.net/pub/firefox/releases/55.0b3/SHA256SUMS
+      # https://download.cdn.mozilla.net/pub/firefox/releases/55.0b3/SHA256SUMS
       let
-        dir = "http://download.cdn.mozilla.net/pub/firefox/releases/${version}";
+        dir = "https://download.cdn.mozilla.net/pub/firefox/releases/${version}";
         file = "${system}/en-US/firefox-${version}.tar.bz2";
       in rec {
         chksum = "${dir}/SHA512SUMS";
@@ -54,11 +54,11 @@ let
       }
     else
       # For Nightly versions:
-      # http://download.cdn.mozilla.net/pub/firefox/nightly/latest-mozilla-central/firefox-56.0a1.en-US.linux-x86_64.checksums
+      # https://download.cdn.mozilla.net/pub/firefox/nightly/latest-mozilla-central/firefox-56.0a1.en-US.linux-x86_64.checksums
       let
         dir =
-          if timestamp == null then "http://download.cdn.mozilla.net/pub/firefox/nightly/latest-mozilla-central"
-          else "http://download.cdn.mozilla.net/pub/firefox/nightly/${yearOf timestamp}/${monthOf timestamp}/${timestamp}-mozilla-central" ;
+          if timestamp == null then "https://download.cdn.mozilla.net/pub/firefox/nightly/latest-mozilla-central"
+          else "https://download.cdn.mozilla.net/pub/firefox/nightly/${yearOf timestamp}/${monthOf timestamp}/${timestamp}-mozilla-central" ;
         file = "firefox-${version}.en-US.${system}.tar.bz2";
       in rec {
         chksum = "${dir}/firefox-${version}.en-US.${system}.checksums";
