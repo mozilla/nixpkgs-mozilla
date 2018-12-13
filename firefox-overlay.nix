@@ -159,7 +159,7 @@ in
 
       rust-cbindgen =
         if !(self ? "rust-cbindgen") then self.rust-cbindgen-latest
-        else if builtins.compareVersions self.rust-cbindgen.name "rust-cbindgen-0.6.4" < 0
+        else if builtins.compareVersions self.rust-cbindgen.version "0.6.7" < 0
         then self.rust-cbindgen-latest else self.rust-cbindgen;
 
       # Due to std::ascii::AsciiExt changes in 1.23, Gecko does not compile, so
