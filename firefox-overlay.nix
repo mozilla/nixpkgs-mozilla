@@ -57,7 +57,11 @@ let
       # https://download.cdn.mozilla.net/pub/firefox/nightly/latest-mozilla-central/firefox-56.0a1.en-US.linux-x86_64.checksums
       let
         dir =
-          if timestamp == null then "https://download.cdn.mozilla.net/pub/firefox/nightly/latest-mozilla-central"
+          if timestamp == null then
+            let
+              buildhubJSON = with builtins;
+                fromJSON (readFile (fetchurl "https://download.cdn.mozilla.net/pub/firefox/nightly/latest-mozilla-central/firefox-${version}.en-US.${system}.buildhub.json"));
+            in builtins.replaceStrings [ "/${file}" ] [ "" ] buildhubJSON.download.url
           else "https://download.cdn.mozilla.net/pub/firefox/nightly/${yearOf timestamp}/${monthOf timestamp}/${timestamp}-mozilla-central" ;
         file = "firefox-${version}.en-US.${system}.tar.bz2";
       in rec {
