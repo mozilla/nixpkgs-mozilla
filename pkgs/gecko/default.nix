@@ -9,7 +9,7 @@
 , setuptools
 , rust # rust & cargo bundled. (otheriwse use pkgs.rust.{rustc,cargo})
 , buildFHSUserEnv # Build a FHS environment with all Gecko dependencies.
-, llvmPackages
+, llvmPackages, nasm
 , ccache
 
 , zlib, xorg
@@ -86,6 +86,9 @@ let
 
     # cbindgen is used to generate C bindings for WebRender.
     rust-cbindgen
+
+    # nasm is used to build libdav1d.
+    nasm
 
     # NodeJS is used for tooling around JS development.
     nodejs
