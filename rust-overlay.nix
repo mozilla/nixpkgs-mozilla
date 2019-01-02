@@ -138,6 +138,11 @@ let
         stdenv.mkDerivation {
           inherit name;
           inherit src;
+
+          # No point copying src to a build server, then copying back the
+          # entire unpacked contents after just a little twiddling.
+          preferLocalBuild = true;
+
           # (@nbp) TODO: Check on Windows and Mac.
           # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
           installPhase = ''
