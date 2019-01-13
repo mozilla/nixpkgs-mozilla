@@ -3,7 +3,6 @@
 self: super:
 
 let
-  fromTOML = (import ./lib/parseTOML.nix).fromTOML;
 
   parseRustToolchain = file: with builtins;
     if file == null then
@@ -250,7 +249,15 @@ let
       inherit (builtins) elemAt;
       inherit (super) makeOverridable;
       inherit (super.lib) flip mapAttrs;
-      pkgs = fromTOML (builtins.readFile manifest);
+      nix-manifest = stdenv.mkDerivation {
+        name = "nix-manifest";
+        phases = [ "installPhase" ];
+        installPhase = ''
+          mkdir -p $out
+          cat ${manifest} | ${super.pkgs.toml2nix}/bin/toml2nix > $out/toml.nix
+        '';
+      };
+      pkgs = import "${nix-manifest.out}/toml.nix";
     in
     flip mapAttrs pkgs.pkg (name: pkg:
       makeOverridable ({extensions, targets, targetExtensions}:
@@ -293,7 +300,6 @@ in
 
 rec {
   lib = super.lib // {
-    inherit fromTOML;
     rustLib = {
       inherit fromManifest fromManifestFile manifest_v2_url;
     };
