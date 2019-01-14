@@ -78,6 +78,9 @@ let
     clang36 = llvmPackages_36.clang;
     clang37 = llvmPackages_37.clang;
     clang38 = llvmPackages_38.clang; # not working yet.
+    clang5 = llvmPackages_5.clang or llvmPackages.clang;
+    clang6 = llvmPackages_6.clang or llvmPackages.clang;
+    clang7 = llvmPackages_7.clang or llvmPackages.clang;
     gcc = gcc;
     gcc6 = gcc6;
     gcc5 = gcc5;
