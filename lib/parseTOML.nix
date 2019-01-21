@@ -4,7 +4,7 @@ with builtins;
 let
   layout_pat = "[ \n]+";
   layout_pat_opt = "[ \n]*";
-  token_pat = ''=|[[][[][a-zA-Z0-9_."*-]+[]][]]|[[][a-zA-Z0-9_."*-]+[]]|[a-zA-Z0-9_-]+|"[^"]*"''; #"
+  token_pat = ''=|[[][[][a-zA-Z0-9_."*-]+[]][]]|[[][a-zA-Z0-9_."*-]+[]]|[[][^]]+[]]|[a-zA-Z0-9_-]+|"[^"]*"''; #"
 
   tokenizer_1_11 = str:
     let
@@ -124,6 +124,8 @@ let
   tokenToValue = token:
     if token == "true" then true
     else if token == "false" then false
+    # TODO: convert the TOML list into a Nix list.
+    else if match "[[][^]]+[]]" token != null then token
     else unescapeString token;
 
   parserInitState = {
