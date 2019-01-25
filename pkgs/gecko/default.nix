@@ -95,7 +95,8 @@ let
     nodejs
 
   ] ++ optionals inNixShell [
-    valgrind gdb rr ccache
+    valgrind gdb ccache
+    (if stdenv.isAarch64 then null else rr)
   ];
 
   genMozConfig = ''
