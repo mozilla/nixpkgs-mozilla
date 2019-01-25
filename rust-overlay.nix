@@ -162,7 +162,6 @@ let
                 echo "setting interpreter of $i"
                 patchelf \
                   --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-                  --add-needed ${stdenv.cc.cc.lib}/lib/libstdc++.so.6 \
                   "$i" || true
               done < <(find "$dir" -type f -print0)
             }
