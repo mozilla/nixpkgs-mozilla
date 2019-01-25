@@ -9,7 +9,7 @@
 , setuptools
 , rust # rust & cargo bundled. (otheriwse use pkgs.rust.{rustc,cargo})
 , buildFHSUserEnv # Build a FHS environment with all Gecko dependencies.
-, llvmPackages, nasm
+, llvm, llvmPackages, nasm
 , ccache
 
 , zlib, xorg
@@ -71,6 +71,7 @@ let
     # the choices of the compilers.
 
     # clang
+    llvm
 
     # mach mochitest
     procps
