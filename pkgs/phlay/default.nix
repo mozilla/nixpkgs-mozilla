@@ -3,12 +3,12 @@
 }:
 python36Packages.buildPythonApplication {
   name = "phlay";
-  version = "0.1.4";
+  version = "0.1.5";
   src = fetchFromGitHub {
     owner = "mystor";
     repo = "phlay";
-    rev = "d3594b4c48b40f742bbd8b6293aeb29f33be45ef";
-    sha256 = "0b7xzrkafm6nb8rm19izyaymmc3mbr0ana1yspffxw819xwzl6vx";
+    rev = "da238512d89eacda526a4f53fc0a096ad594efd9";
+    sha256 = "1cq1jq89xwx25yyqa4n4jhy55bvbyqm0knd7m8vacivqn9p3krks";
   };
   meta = {
     description = "A command-line interface for Phabricator";
