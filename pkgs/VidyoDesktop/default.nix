@@ -31,7 +31,7 @@ in buildFHSUserEnv {
     libpulseaudio
   ];
   extraBuildCommands = ''
-    ln -s ${VidyoDesktopDeb}/opt $out/opt
+    ln -s ${VidyoDesktopDeb}/opt $out/opt2
   '';
   runScript = "VidyoDesktop";
   # for debugging
