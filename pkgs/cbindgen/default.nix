@@ -5,16 +5,16 @@
 
 rustPlatform.buildRustPackage rec {
   name = "rust-cbindgen-${version}";
-  version = "0.6.8";
+  version = "0.8.0";
 
   src = fetchFromGitHub {
     owner = "eqrion";
     repo = "cbindgen";
     rev = "v${version}";
-    sha256 = "0qjdccpyv3lkhnh3f5nzarbdc46hg0c6pmpj0x7sfdm22vbr85w5";
+    sha256 = "07cizbhr02x3rh07xhs10hzzs3lmmpf61g08sa62b98cgadvs9fq";
   };
 
-  cargoSha256 = "1s12xn4xbxq422wgafxdb9nll0lk65wa6x3acicx5pj1y5ijjmmw";
+  cargoSha256 = "00j5nm491zil6kpjns31qyd6z7iqd77b5qp4h7149s70qjwfq2cb";
 
   meta = with stdenv.lib; {
     description = "A project for generating C bindings from Rust code";
