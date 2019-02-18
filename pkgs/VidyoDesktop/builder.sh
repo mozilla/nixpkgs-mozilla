@@ -6,7 +6,7 @@ dpkg -x $src unpacked
 mkdir -p $out/bin
 cp -r unpacked/* $out/
 
-sed -i -e "s|\/opt\/vidyo|\/opt2\/vidyo|" $out/usr/bin/VidyoDesktop
+sed -i -e "s|/opt/vidyo|$out/opt/vidyo|" $out/usr/bin/VidyoDesktop
 
 
 ln -s $out/usr/bin/VidyoDesktop $out/bin/VidyoDesktop
