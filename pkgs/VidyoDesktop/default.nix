@@ -30,9 +30,6 @@ in buildFHSUserEnv {
     xorg.libXfixes xorg.libXrandr xorg.libXScrnSaver
     libpulseaudio
   ];
-  extraBuildCommands = ''
-    ln -s ${VidyoDesktopDeb}/opt $out/opt2
-  '';
   runScript = "VidyoDesktop";
   # for debugging
   #runScript = "bash";
