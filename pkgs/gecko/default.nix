@@ -44,11 +44,17 @@ let
     perl unzip zip gnumake yasm pkgconfig
 
     xlibs.libICE xlibs.libSM xlibs.libX11 xlibs.libXau xlibs.libxcb
-    xlibs.libXdmcp xlibs.libXext xlibs.libXt xlibs.printproto
-    xlibs.renderproto xlibs.xextproto xlibs.xproto xlibs.libXcomposite
-    xlibs.compositeproto xlibs.libXfixes xlibs.fixesproto
-    xlibs.damageproto xlibs.libXdamage xlibs.libXrender xlibs.kbproto
-
+    xlibs.libXdmcp xlibs.libXext xlibs.libXt
+    xlibs.libXcomposite
+    xlibs.libXfixes
+    xlibs.libXdamage xlibs.libXrender
+    ] ++ (if xlibs ? xproto then [
+    xlibs.damageproto xlibs.printproto xlibs.kbproto
+    xlibs.renderproto xlibs.xextproto xlibs.xproto
+    xlibs.compositeproto xlibs.fixesproto
+    ] else [
+    xorg.xorgproto
+    ]) ++ [
     gnome2.libart_lgpl gnome2.libbonobo gnome2.libbonoboui
     gnome2.libgnome gnome2.libgnomecanvas gnome2.libgnomeui
     gnome2.libIDL
