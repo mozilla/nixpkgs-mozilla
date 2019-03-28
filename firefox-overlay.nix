@@ -1,8 +1,14 @@
 # This file provide the latest binary versions of Firefox published by Mozilla.
 self: super:
 
-# firefox.key file is downloaded from:
-# https://gpg.mozilla.org/pks/lookup?search=Mozilla+Software+Releases+%3Crelease%40mozilla.com%3E&op=get
+# firefox.key file was downloaded from:
+#   https://gpg.mozilla.org/pks/lookup?search=Mozilla+Software+Releases+%3Crelease%40mozilla.com%3E&op=get
+#
+# Now, the KEY file is stored next to the published version, such as:
+#   https://archive.mozilla.org/pub/firefox/releases/66.0.2/KEY
+#
+# Any time there are changes, this file should be copied by the manager of the firefox-overlay and move
+# in this repository under the name firefox.key.
 
 let
   # This file is currently maintained manually, if this Nix expression attempt
