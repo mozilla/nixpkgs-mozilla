@@ -15,7 +15,8 @@
 , zlib, xorg
 , rust-cbindgen
 , nodejs
-, callPackage
+, jsdoc
+, fzf # needed by "mack try fuzzy"
 }:
 
 let
@@ -101,11 +102,12 @@ let
     nodejs
 
     # Used for building documentation.
-    (callPackage ../jsdoc {}).jsdoc
+    jsdoc
 
   ] ++ optionals inNixShell [
     valgrind gdb ccache
     (if stdenv.isAarch64 then null else rr)
+    fzf # needed by "mach try fuzzy"
   ];
 
   genMozConfig = ''
