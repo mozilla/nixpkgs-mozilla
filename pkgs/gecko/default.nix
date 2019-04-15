@@ -15,6 +15,8 @@
 , zlib, xorg
 , rust-cbindgen
 , nodejs
+, jsdoc
+, fzf # needed by "mack try fuzzy"
 }:
 
 let
@@ -100,9 +102,13 @@ let
     # NodeJS is used for tooling around JS development.
     nodejs
 
+    # Used for building documentation.
+    jsdoc
+
   ] ++ optionals inNixShell [
     valgrind gdb ccache
     (if stdenv.isAarch64 then null else rr)
+    fzf # needed by "mach try fuzzy"
   ];
 
   genMozConfig = ''

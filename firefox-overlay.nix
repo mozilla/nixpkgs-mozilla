@@ -196,4 +196,6 @@ in
       sha256 = "19ds42jwd89zrsjb94g7gizkkzipn8xik3xykrpcqxylxyzi2z03";
     };
   });
+
+  jsdoc = super.callPackage ./pkgs/jsdoc {};
 }
