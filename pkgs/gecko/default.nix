@@ -15,6 +15,7 @@
 , zlib, xorg
 , rust-cbindgen
 , nodejs
+, callPackage
 }:
 
 let
@@ -99,6 +100,9 @@ let
 
     # NodeJS is used for tooling around JS development.
     nodejs
+
+    # Used for building documentation.
+    (callPackage ../jsdoc {}).jsdoc
 
   ] ++ optionals inNixShell [
     valgrind gdb ccache
