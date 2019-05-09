@@ -175,7 +175,7 @@ in
       # Due to std::ascii::AsciiExt changes in 1.23, Gecko does not compile, so
       # use the latest Rust version before 1.23.
       # rust = (super.rustChannelOf { channel = "stable"; date = "2017-11-22"; }).rust;
-      inherit (self.latest.rustChannels.stable) rust;
+      inherit (self.latest.rustChannels.nightly) rust;
       valgrind = self.valgrind-3_14;
     };
   };
@@ -184,8 +184,8 @@ in
   # version of Nixpkgs already packages a version of rust-cbindgen.
   rust-cbindgen-latest = super.callPackage ./pkgs/cbindgen {
     rustPlatform = super.makeRustPlatform {
-      cargo = self.latest.rustChannels.stable.rust;
-      rustc = self.latest.rustChannels.stable.rust;
+      cargo = self.latest.rustChannels.nightly.rust;
+      rustc = self.latest.rustChannels.nightly.rust;
     };
   };
 
