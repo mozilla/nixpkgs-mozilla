@@ -146,6 +146,7 @@ let
           # (@nbp) TODO: Check on Windows and Mac.
           # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
           installPhase = ''
+            ${self.dos2unix}/bin/dos2unix install.sh
             patchShebangs install.sh
             sed -i "s/llvm-tools-preview//" components
             CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
