@@ -20,7 +20,8 @@ let
     staging ? false,
     # A channel can be "nightly", "beta", "stable", "\d{1}.\d{1}.\d{1}", or "\d{1}.\d{2\d{1}".
     channel ? "nightly",
-    rustToolchain ? null
+    rustToolchain ? null,
+    ...
   }:
     let args = { inherit channel date; } // parseRustToolchain rustToolchain; in
     let inherit (args) date channel; in
@@ -285,8 +286,9 @@ let
       ) { extensions = []; targets = []; targetExtensions = []; }
     );
 
-  fromManifest = manifest: { stdenv, fetchurl, patchelf }:
-    fromManifestFile (builtins.fetchurl manifest) { inherit stdenv fetchurl patchelf; };
+  fromManifest = sha256: manifest: { stdenv, fetchurl, patchelf }:
+    let manifestFile = if sha256 == null then builtins.fetchurl manifest else fetchurl { url = manifest; inherit sha256; };
+    in fromManifestFile manifestFile { inherit stdenv fetchurl patchelf; };
 
 in
 
@@ -298,8 +300,8 @@ rec {
     };
   };
 
-  rustChannelOf = manifest_args: fromManifest
-    (manifest_v2_url manifest_args)
+  rustChannelOf = { sha256 ? null, ... } @ manifest_args: fromManifest
+    sha256 (manifest_v2_url manifest_args)
     { inherit (self) stdenv fetchurl patchelf; }
     ;
 
