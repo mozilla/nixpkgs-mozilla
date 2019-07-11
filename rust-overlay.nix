@@ -271,8 +271,12 @@ let
                 RUSTC_PATH=$(realpath -e $out/bin/rustc)
                 rm $out/bin/rustc
                 cp $RUSTC_PATH $out/bin/rustc
+                wrapProgram $out/bin/rustc --prefix PATH : ${super.lib.makeBinPath [stdenv.cc]}
               fi
             '';
+
+            # Needed in order to use wrapProgram in postBuild
+            buildInputs = [super.makeWrapper];
 
             # Add the compiler as part of the propagated build inputs in order
             # to run:
