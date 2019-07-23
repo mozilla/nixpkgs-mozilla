@@ -13,7 +13,7 @@
 # NOTE: This package only provides git-cinnabar tools, as a git users might want
 # to have additional commands not provided by this forked version of git-core.
 stdenv.mkDerivation rec {
-  version = "0.5.0";
+  version = "0.5.2";
   name = "git-cinnabar-${version}";
   src = fetchFromGitHub {
     owner = "glandium";
@@ -21,7 +21,7 @@ stdenv.mkDerivation rec {
     inherit name;
     rev = version; # tag name
     fetchSubmodules = true;
-    sha256 = "1yki44qzh3ca41xv4ch3fkxalsj707q2az0yjb917q3mpavxsx9q";
+    sha256 = "1jkwrv349jap3yz7giw5f0nmslgnrwzkhni0kx7f5fl9411ghis4";
   };
   buildInputs = [ autoconf python gettext git ];
 
