@@ -102,7 +102,7 @@ let
     nodejs
 
     # Used for building documentation.
-    jsdoc
+    # jsdoc
 
   ] ++ optionals inNixShell [
     valgrind gdb ccache
@@ -110,14 +110,23 @@ let
     fzf # needed by "mach try fuzzy"
   ];
 
+  # bindgen.configure now has a rule to check that with-libclang-path matches CC
+  # or CXX. Default to the stdenv compiler if we are compiling with clang.
+  clang_path =
+    if stdenv.cc.isGNU then "${llvmPackages.clang}/bin/clang"
+    else "${stdenv.cc}/bin/cc";
+  libclang_path =
+    if stdenv.cc.isGNU then "${llvmPackages.clang.cc.lib}/lib"
+    else "${stdenv.cc.cc.lib}/lib";
+
   genMozConfig = ''
     cxxLib=$( echo -n ${gcc}/include/c++/* )
     archLib=$cxxLib/$( ${gcc}/bin/gcc -dumpmachine )
 
     cat - > $MOZCONFIG <<EOF
     mk_add_options AUTOCONF=${autoconf213}/bin/autoconf
-    ac_add_options --with-libclang-path=${llvmPackages.clang.cc.lib}/lib
-    ac_add_options --with-clang-path=${llvmPackages.clang}/bin/clang
+    ac_add_options --with-libclang-path=${libclang_path}/lib
+    ac_add_options --with-clang-path=${clang_path}
     export BINDGEN_CFLAGS="-cxx-isystem $cxxLib -isystem $archLib"
     export CC="${stdenv.cc}/bin/cc"
     export CXX="${stdenv.cc}/bin/c++"
@@ -130,7 +139,7 @@ let
     export CC="${stdenv.cc}/bin/cc";
     export CXX="${stdenv.cc}/bin/c++";
     # To be used when building the JS Shell.
-    export NIX_EXTRA_CONFIGURE_ARGS="--with-libclang-path=${llvmPackages.clang.cc.lib}/lib --with-clang-path=${llvmPackages.clang}/bin/clang"
+    export NIX_EXTRA_CONFIGURE_ARGS="--with-libclang-path=${libclang_path}/lib --with-clang-path=${clang_path}"
     cxxLib=$( echo -n ${gcc}/include/c++/* )
     archLib=$cxxLib/$( ${gcc}/bin/gcc -dumpmachine )
     export BINDGEN_CFLAGS="-cxx-isystem $cxxLib -isystem $archLib"
