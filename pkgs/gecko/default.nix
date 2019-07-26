@@ -125,7 +125,7 @@ let
 
     cat - > $MOZCONFIG <<EOF
     mk_add_options AUTOCONF=${autoconf213}/bin/autoconf
-    ac_add_options --with-libclang-path=${libclang_path}/lib
+    ac_add_options --with-libclang-path=${libclang_path}
     ac_add_options --with-clang-path=${clang_path}
     export BINDGEN_CFLAGS="-cxx-isystem $cxxLib -isystem $archLib"
     export CC="${stdenv.cc}/bin/cc"
@@ -139,7 +139,7 @@ let
     export CC="${stdenv.cc}/bin/cc";
     export CXX="${stdenv.cc}/bin/c++";
     # To be used when building the JS Shell.
-    export NIX_EXTRA_CONFIGURE_ARGS="--with-libclang-path=${libclang_path}/lib --with-clang-path=${clang_path}"
+    export NIX_EXTRA_CONFIGURE_ARGS="--with-libclang-path=${libclang_path} --with-clang-path=${clang_path}"
     cxxLib=$( echo -n ${gcc}/include/c++/* )
     archLib=$cxxLib/$( ${gcc}/bin/gcc -dumpmachine )
     export BINDGEN_CFLAGS="-cxx-isystem $cxxLib -isystem $archLib"
