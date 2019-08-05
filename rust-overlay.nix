@@ -285,6 +285,15 @@ let
               done
             '';
 
+            # Export the manifest file as part of the nix-support files such
+            # that one can compute the sha256 of a manifest to freeze it for
+            # reproducible builds.
+            MANIFEST_FILE = manifest;
+            postInstall = ''
+              mkdir $out/nix-support
+              cp $MANIFEST_FILE $out/nix-support/manifest.toml
+            '';
+
             # Add the compiler as part of the propagated build inputs in order
             # to run:
             #
