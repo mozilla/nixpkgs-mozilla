@@ -3,7 +3,11 @@
 self: super:
 
 let
-  fromTOML = (import ./lib/parseTOML.nix).fromTOML;
+  fromTOML =
+    # nix 2.1 added the fromTOML builtin
+    if builtins ? fromTOML
+    then builtins.fromTOML
+    else (import ./lib/parseTOML.nix).fromTOML;
 
   parseRustToolchain = file: with builtins;
     if file == null then
