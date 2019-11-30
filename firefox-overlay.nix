@@ -121,7 +121,7 @@ let
       src = fetchVersion info;
     })) {
       browserName = "firefox";
-      name = "firefox-bin-${version.version}";
+      pname = "firefox-bin-${version.version}";
       desktopName = "Firefox";
     };
 in
