@@ -52,11 +52,14 @@ let
       let
         dir = "https://download.cdn.mozilla.net/pub/firefox/releases/${version}";
         file = "${system}/en-US/firefox-${version}.tar.bz2";
+        sha512Of = chksum: file: extractSha512Sum (readFile (fetchurl chksum)) file;
       in rec {
         chksum = "${dir}/SHA512SUMS";
         chksumSig = "${chksum}.asc";
         url = "${dir}/${file}";
-        sha512 = extractSha512Sum (readFile (fetchurl chksum)) file;
+        sha512 = sha512Of chksum file;
+        sig = null;
+        sigSha512 = null;
       }
     else
       # For Nightly versions:
@@ -70,44 +73,68 @@ let
             in builtins.replaceStrings [ "/${file}" ] [ "" ] buildhubJSON.download.url
           else "https://download.cdn.mozilla.net/pub/firefox/nightly/${yearOf timestamp}/${monthOf timestamp}/${timestamp}-mozilla-central" ;
         file = "firefox-${version}.en-US.${system}.tar.bz2";
+        sha512Of = chksum: file: head (match ".*[\n]([0-9a-f]*) sha512 [0-9]* ${file}[\n].*" (readFile (fetchurl chksum)));
       in rec {
         chksum = "${dir}/firefox-${version}.en-US.${system}.checksums";
-        chksumSig = "${chksum}.asc";
+        chksumSig = null;
         # file content:
         # <hash> sha512 62733881 firefox-56.0a1.en-US.linux-x86_64.tar.bz2
         # <hash> sha256 62733881 firefox-56.0a1.en-US.linux-x86_64.tar.bz2
         url = "${dir}/${file}";
-        sha512 = head (match ".*[\n]([0-9a-f]*) sha512 [0-9]* ${file}[\n].*" (readFile (fetchurl chksum)));
+        sha512 = sha512Of chksum file;
+        sig = "${dir}/${file}.asc";
+        sigSha512 = sha512Of chksum "${file}.asc";
       };
 
   # From the version info, check the authenticity of the check sum file, such
   # that we guarantee that we have
-  verifyAuthenticity = info:
-    super.runCommandNoCC "check-firefox-signature" {
+  verifyFileAuthenticity = { file, asc }:
+    if asc == null then "" else super.runCommandNoCC "check-firefox-signature" {
       buildInputs = [ self.gnupg ];
-      CHKSUM_FILE = builtins.fetchurl info.chksum;
-      CHKSUM_ASC = builtins.fetchurl info.chksumSig;
+      FILE = file;
+      ASC = asc;
     } ''
       HOME=`mktemp -d`
       set -eu
       cat ${./firefox.key} | gpg --import
-      gpgv --keyring=$HOME/.gnupg/pubring.kbx $CHKSUM_ASC $CHKSUM_FILE
+      gpgv --keyring=$HOME/.gnupg/pubring.kbx $ASC $FILE
       mkdir $out
     '';
 
   # From the version info, create a fetchurl derivation which will get the
   # sources from the remote.
   fetchVersion = info:
-    super.fetchurl {
-      inherit (info) url sha512;
+    if info.chksumSig != null then
+      super.fetchurl {
+        inherit (info) url sha512;
 
-      # This is a fixed derivation, but we still add as a dependency the
-      # verification of the checksum.  Thus, this fetch script can only be
-      # executed once the verifyAuthenticity script finished successfully.
-      postFetch = ''
-        : # Authenticity Check (${verifyAuthenticity info})
-      '';
-  };
+        # This is a fixed derivation, but we still add as a dependency the
+        # verification of the checksum.  Thus, this fetch script can only be
+        # executed once the verifyAuthenticity script finished successfully.
+        postFetch = ''
+          : # Authenticity Check (${verifyFileAuthenticity {
+            file = builtins.fetchurl info.chksum;
+            asc = builtins.fetchurl info.chksumSig;
+          }})
+        '';
+      }
+    else
+      super.fetchurl {
+        inherit (info) url sha512;
+
+        # This would download the tarball, and then verify that the content
+        # match the signature file. Fortunately, any failure of this code would
+        # prevent the output from being reused.
+        postFetch =
+          let asc = super.fetchurl { url = info.sig; sha512 = info.sigSha512; }; in ''
+          : # Authenticity Check
+          HOME=`mktemp -d`
+          set -eu
+          export PATH="$PATH:${self.gnupg}/bin/"
+          cat ${./firefox.key} | gpg --import
+          gpgv --keyring=$HOME/.gnupg/pubring.kbx ${asc} $out
+        '';
+      };
 
   firefoxVersion = version:
     let info = versionInfo version; in
