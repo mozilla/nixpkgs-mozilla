@@ -16,13 +16,13 @@ let
       let res = match "([a-z]*)-([0-9-]*).*" (readFile file); in
       { channel = head res; date = head (tail res); };
 
-  # See https://github.com/rust-lang-nursery/rustup.rs/blob/master/src/rustup-dist/src/dist.rs
+  # See https://github.com/rust-lang-nursery/rustup.rs/blob/master/src/dist/src/dist.rs
   defaultDistRoot = "https://static.rust-lang.org";
   manifest_v1_url = {
     dist_root ? defaultDistRoot + "/dist",
     date ? null,
     staging ? false,
-    # A channel can be "nightly", "beta", "stable", "\d{1}.\d{1}.\d{1}", or "\d{1}.\d{2\d{1}".
+    # A channel can be "nightly", "beta", "stable", or "\d{1}\.\d{1,3}\.\d{1,2}".
     channel ? "nightly",
     rustToolchain ? null,
     ...
