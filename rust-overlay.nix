@@ -13,8 +13,18 @@ let
     if file == null then
       {}
     else
-      let res = match "([a-z]*)-([0-9-]*).*" (readFile file); in
-      { channel = head res; date = head (tail res); };
+    let
+      # matches toolchain descriptions of type "nightly" or "nightly-2020-01-01"
+      channel_by_name = match "([a-z]+)(-([0-9]{4}-[0-9]{2}-[0-9]{2}))?.*" (readFile file);
+      # matches toolchain descriptions of type "1.34.0" or "1.34.0-2019-04-10"
+      channel_by_version = match "([0-9]+\\.[0-9]+\\.[0-9]+)(-([0-9]{4}-[0-9]{2}-[0-9]{2}))?.*" (readFile file);
+    in
+      (x: { channel = head x; date = (head (tail (tail x))); }) (
+        if channel_by_name != null then
+          channel_by_name
+        else
+          channel_by_version
+        );
 
   # See https://github.com/rust-lang-nursery/rustup.rs/blob/master/src/dist/src/dist.rs
   defaultDistRoot = "https://static.rust-lang.org";
@@ -24,6 +34,7 @@ let
     staging ? false,
     # A channel can be "nightly", "beta", "stable", or "\d{1}\.\d{1,3}\.\d{1,2}".
     channel ? "nightly",
+    # A path that points to a rust-toolchain file, typically ./rust-toolchain.
     rustToolchain ? null,
     ...
   }:
