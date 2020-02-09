@@ -4,7 +4,10 @@
   edition = 201909;
 
   outputs = { self, nixpkgs }:
-    let overlays = import ./overlays.nix;
+    let
+      system = "x86_64-linux";
+      overlays = import ./overlays.nix;
+      pkgs = import nixpkgs { inherit system; };
     in {
 
       overlays = let
@@ -19,6 +22,8 @@
         overlayAttrs = listToAttrs nvPairs;
 
       in overlayAttrs;
+
+      packages."${system}" = import ./package-set.nix { inherit pkgs; };
 
     };
 }
