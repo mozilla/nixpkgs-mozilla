@@ -1,9 +1,9 @@
-self: super:
+final: prev:
 
 {
-  git-cinnabar = super.callPackage ./pkgs/git-cinnabar {
+  git-cinnabar = prev.callPackage ./pkgs/git-cinnabar {
     # we need urllib to recognize ssh.
-    # python = self.pythonFull;
-    python = self.mercurial.python;
+    # python = final.pythonFull;
+    python = final.mercurial.python;
   };
 }

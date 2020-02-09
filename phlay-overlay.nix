@@ -1,5 +1,5 @@
-self: super:
+final: prev:
 
 {
-  phlay = super.callPackage ./pkgs/phlay {};
+  phlay = prev.callPackage ./pkgs/phlay {};
 }

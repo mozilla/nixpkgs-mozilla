@@ -1,5 +1,5 @@
 # This file provide the latest binary versions of Firefox published by Mozilla.
-self: super:
+final: prev:
 
 # firefox.key file was downloaded from:
 #   https://gpg.mozilla.org/pks/lookup?search=Mozilla+Software+Releases+%3Crelease%40mozilla.com%3E&op=get
@@ -20,13 +20,13 @@ let
   firefox_versions = with builtins;
     fromJSON (readFile (fetchurl https://product-details.mozilla.org/1.0/firefox_versions.json));
 
-  arch = if self.stdenv.system == "i686-linux"
+  arch = if final.stdenv.system == "i686-linux"
     then "linux-i686"
     else "linux-x86_64";
 
-  yearOf = with super.lib; yyyymmddhhmmss:
+  yearOf = with prev.lib; yyyymmddhhmmss:
     head (splitString "-" yyyymmddhhmmss);
-  monthOf = with super.lib; yyyymmddhhmmss:
+  monthOf = with prev.lib; yyyymmddhhmmss:
     head (tail (splitString "-" yyyymmddhhmmss));
 
   # Given SHA512SUMS file contents and file name, extract matching sha512sum.
@@ -37,7 +37,7 @@ let
     # So I made separate logic for Nix 1.x and Nix 2.0.
     if builtins ? split then
       substring 0 128 (head
-        (super.lib.filter
+        (prev.lib.filter
           (s: isString s && substring 128 (stringLength s) s == "  ${file}")
           (split "\n" sha512sums)))
     else
@@ -89,8 +89,8 @@ let
   # From the version info, check the authenticity of the check sum file, such
   # that we guarantee that we have
   verifyFileAuthenticity = { file, asc }:
-    if asc == null then "" else super.runCommandNoCC "check-firefox-signature" {
-      buildInputs = [ self.gnupg ];
+    if asc == null then "" else prev.runCommandNoCC "check-firefox-signature" {
+      buildInputs = [ final.gnupg ];
       FILE = file;
       ASC = asc;
     } ''
@@ -105,7 +105,7 @@ let
   # sources from the remote.
   fetchVersion = info:
     if info.chksumSig != null then
-      super.fetchurl {
+      prev.fetchurl {
         inherit (info) url sha512;
 
         # This is a fixed derivation, but we still add as a dependency the
@@ -119,18 +119,18 @@ let
         '';
       }
     else
-      super.fetchurl {
+      prev.fetchurl {
         inherit (info) url sha512;
 
         # This would download the tarball, and then verify that the content
         # match the signature file. Fortunately, any failure of this code would
         # prevent the output from being reused.
         postFetch =
-          let asc = super.fetchurl { url = info.sig; sha512 = info.sigSha512; }; in ''
+          let asc = prev.fetchurl { url = info.sig; sha512 = info.sigSha512; }; in ''
           : # Authenticity Check
           HOME=`mktemp -d`
           set -eu
-          export PATH="$PATH:${self.gnupg}/bin/"
+          export PATH="$PATH:${final.gnupg}/bin/"
           cat ${./firefox.key} | gpg --import
           gpgv --keyring=$HOME/.gnupg/pubring.kbx ${asc} $out
         '';
@@ -138,7 +138,7 @@ let
 
   firefoxVersion = version:
     let info = versionInfo version; in
-    super.wrapFirefox ((self.firefox-bin-unwrapped.override {
+    prev.wrapFirefox ((final.firefox-bin-unwrapped.override {
       generated = {
         version = version.version;
         sources = { inherit (info) url sha512; };
@@ -154,7 +154,7 @@ let
 in
 
 {
-  lib = super.lib // {
+  lib = prev.lib // {
     firefoxOverlay = {
       inherit firefoxVersion;
     };
@@ -162,7 +162,7 @@ in
 
   # Set of packages which are automagically updated. Do not rely on these for
   # reproducible builds.
-  latest = (super.latest or {}) // {
+  latest = (prev.latest or {}) // {
     firefox-nightly-bin = firefoxVersion {
       name = "Firefox Nightly";
       version = firefox_versions.FIREFOX_NIGHTLY;
@@ -186,39 +186,39 @@ in
   };
 
   # Set of packages which used to build developer environment
-  devEnv = (super.shell or {}) // {
-    gecko = super.callPackage ./pkgs/gecko {
-      inherit (self.python35Packages) setuptools;
-      pythonFull = self.python35Full;
+  devEnv = (prev.shell or {}) // {
+    gecko = prev.callPackage ./pkgs/gecko {
+      inherit (final.python35Packages) setuptools;
+      pythonFull = final.python35Full;
       nodejs =
-        if builtins.compareVersions self.nodejs.name "nodejs-8.11.3" < 0
-        then self.nodejs-8_x else self.nodejs;
+        if builtins.compareVersions final.nodejs.name "nodejs-8.11.3" < 0
+        then final.nodejs-8_x else final.nodejs;
 
       rust-cbindgen =
-        if !(self ? "rust-cbindgen") then self.rust-cbindgen-latest
-        else if builtins.compareVersions self.rust-cbindgen.version self.rust-cbindgen-latest.version < 0
-        then self.rust-cbindgen-latest else self.rust-cbindgen;
+        if !(final ? "rust-cbindgen") then final.rust-cbindgen-latest
+        else if builtins.compareVersions final.rust-cbindgen.version final.rust-cbindgen-latest.version < 0
+        then final.rust-cbindgen-latest else final.rust-cbindgen;
 
       # Due to std::ascii::AsciiExt changes in 1.23, Gecko does not compile, so
       # use the latest Rust version before 1.23.
-      # rust = (super.rustChannelOf { channel = "stable"; date = "2017-11-22"; }).rust;
-      inherit (self.latest.rustChannels.stable) rust;
-      valgrind = self.valgrind-3_14;
+      # rust = (prev.rustChannelOf { channel = "stable"; date = "2017-11-22"; }).rust;
+      inherit (final.latest.rustChannels.stable) rust;
+      valgrind = final.valgrind-3_14;
     };
   };
 
   # Use rust-cbindgen imported from Nixpkgs (September 2018) unless the current
   # version of Nixpkgs already packages a version of rust-cbindgen.
-  rust-cbindgen-latest = super.callPackage ./pkgs/cbindgen {
-    rustPlatform = super.makeRustPlatform {
-      cargo = self.latest.rustChannels.stable.rust;
-      rustc = self.latest.rustChannels.stable.rust;
+  rust-cbindgen-latest = prev.callPackage ./pkgs/cbindgen {
+    rustPlatform = prev.makeRustPlatform {
+      cargo = final.latest.rustChannels.stable.rust;
+      rustc = final.latest.rustChannels.stable.rust;
     };
   };
 
-  valgrind-3_14 = super.valgrind.overrideAttrs (attrs: {
+  valgrind-3_14 = prev.valgrind.overrideAttrs (attrs: {
     name = "valgrind-3.14.0";
-    src = super.fetchurl {
+    src = prev.fetchurl {
       url = "http://www.valgrind.org/downloads/valgrind-3.14.0.tar.bz2";
       sha256 = "19ds42jwd89zrsjb94g7gizkkzipn8xik3xykrpcqxylxyzi2z03";
     };

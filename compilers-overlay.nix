@@ -4,16 +4,16 @@
 #
 # See release.nix "builder" function, to understand how these different stdenv
 # are used.
-self: super: 
+final: prev:
 
 let
-  noSysDirs = (super.stdenv.system != "x86_64-darwin"
-             && super.stdenv.system != "x86_64-freebsd"
-             && super.stdenv.system != "i686-freebsd"
-             && super.stdenv.system != "x86_64-kfreebsd-gnu");
+  noSysDirs = (prev.stdenv.system != "x86_64-darwin"
+             && prev.stdenv.system != "x86_64-freebsd"
+             && prev.stdenv.system != "i686-freebsd"
+             && prev.stdenv.system != "x86_64-kfreebsd-gnu");
   crossSystem = null;
 
-  gcc473 = super.wrapCC (super.callPackage ./pkgs/gcc-4.7 (with self; {
+  gcc473 = prev.wrapCC (prev.callPackage ./pkgs/gcc-4.7 (with final; {
     inherit noSysDirs;
     texinfo = texinfo4;
     # I'm not sure if profiling with enableParallelBuilding helps a lot.
@@ -44,36 +44,36 @@ let
 
   clangWrapCC = llvmPackages:
     let libcxx =
-      super.lib.overrideDerivation llvmPackages.libcxx (drv: {
+      prev.lib.overrideDerivation llvmPackages.libcxx (drv: {
         # https://bugzilla.mozilla.org/show_bug.cgi?id=1277619
         # https://llvm.org/bugs/show_bug.cgi?id=14435
         patches = drv.patches ++ [ ./pkgs/clang/bug-14435.patch ];
       });
     in
-    super.callPackage <nixpkgs/pkgs/build-support/cc-wrapper> {
+    prev.callPackage <nixpkgs/pkgs/build-support/cc-wrapper> {
       cc = llvmPackages.clang-unwrapped or llvmPackages.clang;
       isClang = true;
-      stdenv = self.clangStdenv;
-      libc = self.glibc;
+      stdenv = final.clangStdenv;
+      libc = final.glibc;
       # cc-wrapper pulls gcc headers, which are not compatible with features
       # implemented in clang.  These packages are used to override that.
-      extraPackages = [ self.libcxx llvmPackages.libcxxabi ];
+      extraPackages = [ final.libcxx llvmPackages.libcxxabi ];
       nativeTools = false;
       nativeLibc = false;
     };
 
   buildWithCompiler = cc:
-    super.stdenvAdapters.overrideCC self.stdenv (maybeWrapClang cc);
+    prev.stdenvAdapters.overrideCC final.stdenv (maybeWrapClang cc);
 
   chgCompilerSource = cc: name: src:
     cc.override (conf:
       if conf ? gcc then # Nixpkgs 14.12
-        { gcc = super.lib.overrideDerivation conf.gcc (old: { inherit name src; }); }
+        { gcc = prev.lib.overrideDerivation conf.gcc (old: { inherit name src; }); }
       else # Nixpkgs 15.05
-        { cc = super.lib.overrideDerivation conf.cc (old: { inherit name src; }); }
+        { cc = prev.lib.overrideDerivation conf.cc (old: { inherit name src; }); }
     );
 
-  compilersByName = with self; {
+  compilersByName = with final; {
     clang = llvmPackages.clang;
     clang36 = llvmPackages_36.clang;
     clang37 = llvmPackages_37.clang;
@@ -100,5 +100,5 @@ let
 
 in {
   customStdenvs =
-    super.lib.mapAttrs (name: value: buildWithCompiler value) compilersByName;
+    prev.lib.mapAttrs (name: value: buildWithCompiler value) compilersByName;
 }

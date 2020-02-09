@@ -1,12 +1,12 @@
-self: super:
+final: prev:
 
 {
   # Add i686-linux platform as a valid target.
-  rr = super.rr.override {
-    stdenv = self.stdenv // {
-      mkDerivation = args: self.stdenv.mkDerivation (args // {
+  rr = prev.rr.override {
+    stdenv = final.stdenv // {
+      mkDerivation = args: final.stdenv.mkDerivation (args // {
         meta = args.meta // {
-          platforms = self.stdenv.lib.platforms.linux;
+          platforms = final.stdenv.lib.platforms.linux;
         };
       });
     };

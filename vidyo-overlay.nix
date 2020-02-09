@@ -1,5 +1,5 @@
-self: super:
+final: prev:
 
 {
-  VidyoDesktop = super.callPackage ./pkgs/VidyoDesktop { };
+  VidyoDesktop = prev.callPackage ./pkgs/VidyoDesktop { };
 }

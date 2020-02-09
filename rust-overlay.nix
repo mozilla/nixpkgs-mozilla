@@ -1,6 +1,6 @@
 # This file provide a Rust overlay, which provides pre-packaged bleeding edge versions of rustc
 # and cargo.
-self: super:
+final: prev:
 
 let
   fromTOML =
@@ -78,7 +78,7 @@ let
 
   getExtensions = pkgs: pkgname: stdenv:
     let
-      inherit (super.lib) unique;
+      inherit (prev.lib) unique;
       pkg = pkgs.${pkgname};
       srcInfo = pkg.target.${hostTripleOf stdenv.system} or pkg.target."*";
       extensions = srcInfo.extensions or [];
@@ -100,7 +100,7 @@ let
   getTargetPkgTuples = pkgs: pkgname: pkgTargets: compTargets: stdenv:
     let
       inherit (builtins) elem;
-      inherit (super.lib) intersectLists;
+      inherit (prev.lib) intersectLists;
       components = getComponentsWithFixedPlatform pkgs pkgname stdenv;
       extensions = getExtensions pkgs pkgname stdenv;
       compExtIntersect = intersectLists components extensions;
@@ -113,12 +113,12 @@ let
       pkg = pkgs.${pkgname};
       srcInfo = pkg.target.${target};
     in
-      (super.fetchurl { url = srcInfo.xz_url; sha256 = srcInfo.xz_hash; });
+      (prev.fetchurl { url = srcInfo.xz_url; sha256 = srcInfo.xz_hash; });
 
   checkMissingExtensions = pkgs: pkgname: stdenv: extensions:
     let
       inherit (builtins) head;
-      inherit (super.lib) concatStringsSep subtractLists;
+      inherit (prev.lib) concatStringsSep subtractLists;
       availableExtensions = getExtensions pkgs pkgname stdenv;
       missingExtensions = subtractLists availableExtensions extensions;
       extensionsToInstall =
@@ -132,7 +132,7 @@ let
   getComponents = pkgs: pkgname: targets: extensions: targetExtensions: stdenv: fetchurl:
     let
       inherit (builtins) head map;
-      inherit (super.lib) flatten remove subtractLists unique;
+      inherit (prev.lib) flatten remove subtractLists unique;
       targetExtensionsToInstall = checkMissingExtensions pkgs pkgname stdenv targetExtensions;
       extensionsToInstall = checkMissingExtensions pkgs pkgname stdenv extensions;
       hostTargets = [ "*" (hostTripleOf stdenv.system)];
@@ -262,8 +262,8 @@ let
   fromManifestFile = manifest: { stdenv, fetchurl, patchelf }:
     let
       inherit (builtins) elemAt;
-      inherit (super) makeOverridable;
-      inherit (super.lib) flip mapAttrs;
+      inherit (prev) makeOverridable;
+      inherit (prev.lib) flip mapAttrs;
       pkgs = fromTOML (builtins.readFile manifest);
     in
     flip mapAttrs pkgs.pkg (name: pkg:
@@ -273,9 +273,9 @@ let
           version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
           namesAndSrcs = getComponents pkgs.pkg name targets extensions targetExtensions stdenv fetchurl;
           components = installComponents stdenv namesAndSrcs;
-          componentsOuts = builtins.map (comp: (super.lib.strings.escapeNixString (super.lib.getOutput "out" comp))) components;
+          componentsOuts = builtins.map (comp: (prev.lib.strings.escapeNixString (prev.lib.getOutput "out" comp))) components;
         in
-          super.pkgs.symlinkJoin {
+          prev.pkgs.symlinkJoin {
             name = name + "-" + version;
             paths = components;
             postBuild = ''
@@ -309,7 +309,7 @@ let
 in
 
 rec {
-  lib = super.lib // {
+  lib = prev.lib // {
     inherit fromTOML;
     rustLib = {
       inherit fromManifest fromManifestFile manifest_v2_url;
@@ -318,12 +318,12 @@ rec {
 
   rustChannelOf = { sha256 ? null, ... } @ manifest_args: fromManifest
     sha256 (manifest_v2_url manifest_args)
-    { inherit (self) stdenv fetchurl patchelf; }
+    { inherit (final) stdenv fetchurl patchelf; }
     ;
 
   # Set of packages which are automagically updated. Do not rely on these for
   # reproducible builds.
-  latest = (super.latest or {}) // {
+  latest = (prev.latest or {}) // {
     rustChannels = {
       nightly = rustChannelOf { channel = "nightly"; };
       beta    = rustChannelOf { channel = "beta"; };

@@ -1,5 +1,5 @@
-self: super:
+final: prev:
 
 {
-  lib = super.lib // (import ./pkgs/lib/default.nix { pkgs = self; });
+  lib = prev.lib // (import ./pkgs/lib/default.nix { pkgs = final; });
 }
