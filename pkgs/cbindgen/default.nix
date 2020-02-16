@@ -1,34 +1,36 @@
 ### NOTE: This file is a copy of the one from Nixpkgs repository
-### (taken 2018 October).  It is used when the version of cbindgen in
+### (taken 2020 February) from commit 82d9ce45fe0b67e3708ab6ba47ffcb4bba09945d.
+### It is used when the version of cbindgen in
 ### upstream nixpkgs is not up-to-date enough to compile Firefox.
-{ stdenv, fetchFromGitHub, rustPlatform }:
+
+{ stdenv, fetchFromGitHub, rustPlatform
+# , Security
+}:
 
 rustPlatform.buildRustPackage rec {
-  name = "rust-cbindgen-${version}";
-  version = "0.9.1";
+  pname = "rust-cbindgen";
+  version = "0.13.1";
 
   src = fetchFromGitHub {
     owner = "eqrion";
     repo = "cbindgen";
     rev = "v${version}";
-    sha256 = "1g0vrkwkc8wsyiz04qchw07chg0mg451if02sr17s65chwmbrc19";
+    sha256 = "1x21g66gri6z9bnnfn7zmnf2lwdf5ing76pcmw0ilx4nzpvfhkg0";
   };
 
-  cargoSha256 = "1y96m2my0h8fxglxz20y68fr8mnw031pxvzjsq801gwz2p858d75";
+  cargoSha256 = "13fb8cdg6r0g5jb3vaznvv5aaywrnsl2yp00h4k8028vl8jwwr79";
 
-  # https://github.com/eqrion/cbindgen/issues/338
-  doCheck = false;
+  # buildInputs = stdenv.lib.optional stdenv.isDarwin Security;
 
-  # https://github.com/NixOS/nixpkgs/issues/61618
-  postConfigure = ''
-    touch .cargo/.package-cache
-    export HOME=`pwd`
-  '';
+  checkFlags = [
+    # https://github.com/eqrion/cbindgen/issues/338
+    "--skip test_expand"
+  ];
 
   meta = with stdenv.lib; {
     description = "A project for generating C bindings from Rust code";
     homepage = https://github.com/eqrion/cbindgen;
     license = licenses.mpl20;
-    maintainers = with maintainers; [ jtojnar ];
+    maintainers = with maintainers; [ jtojnar andir ];
   };
 }
