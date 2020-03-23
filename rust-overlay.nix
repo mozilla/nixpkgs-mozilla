@@ -279,13 +279,18 @@ let
             name = name + "-" + version;
             paths = components;
             postBuild = ''
-	      # If rustc is in the derivation, we need to copy the rustc
-	      # executable into the final derivation. This is required
-	      # for making rustc find the correct SYSROOT.
+              # If rustc or rustdoc is in the derivation, we need to copy their
+              # executable into the final derivation. This is required
+              # for making them find the correct SYSROOT.
               if [ -e "$out/bin/rustc" ]; then
                 RUSTC_PATH=$(realpath -e $out/bin/rustc)
                 rm $out/bin/rustc
                 cp $RUSTC_PATH $out/bin/rustc
+              fi
+              if [ -e "$out/bin/rustdoc" ]; then
+                RUSTDOC_PATH=$(realpath -e $out/bin/rustdoc)
+                rm $out/bin/rustdoc
+                cp $RUSTDOC_PATH $out/bin/rustdoc
               fi
             '';
 
