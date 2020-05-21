@@ -50,31 +50,10 @@ let
 
   manifest_v2_url = args: (manifest_v1_url args) + ".toml";
 
-  # Intersection of rustup-dist/src/dist.rs listed platforms and stdenv/default.nix.
-  #
-  # Note, cross-compilation uses the (build, host, target) systems. When
-  # building Rust we are building on (stdenv.buildPlatform.config), for the
-  # (stdenv.targetPlatform.config) host to target the list of platforms given as
-  # argument of the derivation.
-  hostTripleOf = stdenv: { # switch
-    "i686-unknown-linux-gnu" = "i686-unknown-linux-gnu";
-    "x86_64-unknown-linux-gnu" = "x86_64-unknown-linux-gnu";
-    "arm-unknown-linux-gnueabi" = "arm-unknown-linux-gnueabi";
-    "armv7-linux-androideabi" = "armv7-linux-androideabi";
-    "armv7-unknown-linux-gnueabihf" = "armv7-unknown-linux-gnueabihf";
-    "aarch64-unknown-linux-gnu" = "aarch64-unknown-linux-gnu";
-    "mips64el-unknown-linux-gnuabi64" = "mips64el-unknown-linux-gnuabi64";
-    "x86_64-apple-darwin" = "x86_64-apple-darwin";
-    "i686-pc-windows-gnu" = "i686-pc-windows-gnu"; # or msvc?
-    "x86_64-pc-windows-gnu" = "x86_64-pc-windows-gnu"; # or msvc?
-    "x86_64-unknown-freebsd" = "x86_64-unknown-freebsd";
-  }.${stdenv.targetPlatform.config} or
-    (throw "Rust overlay does not support ${stdenv.targetPlatform.config} yet.");
-
   getComponentsWithFixedPlatform = pkgs: pkgname: stdenv:
     let
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${hostTripleOf stdenv} or pkg.target."*";
+      srcInfo = pkg.target.${self.rust.toRustTarget stdenv.targetPlatform} or pkg.target."*";
       components = srcInfo.components or [];
       componentNamesList =
         builtins.map (pkg: pkg.pkg) (builtins.filter (pkg: (pkg.target != "*")) components);
@@ -85,7 +64,7 @@ let
     let
       inherit (super.lib) unique;
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${hostTripleOf stdenv} or pkg.target."*";
+      srcInfo = pkg.target.${self.rust.toRustTarget stdenv.targetPlatform} or pkg.target."*";
       extensions = srcInfo.extensions or [];
       extensionNamesList = unique (builtins.map (pkg: pkg.pkg) extensions);
     in
@@ -140,7 +119,7 @@ let
       inherit (super.lib) flatten remove subtractLists unique;
       targetExtensionsToInstall = checkMissingExtensions pkgs pkgname stdenv targetExtensions;
       extensionsToInstall = checkMissingExtensions pkgs pkgname stdenv extensions;
-      hostTargets = [ "*" (hostTripleOf stdenv)];
+      hostTargets = [ "*" (self.rust.toRustTarget stdenv.targetPlatform) ];
       pkgTuples = flatten (getTargetPkgTuples pkgs pkgname hostTargets targets stdenv);
       extensionTuples = flatten (map (name: getTargetPkgTuples pkgs name hostTargets targets stdenv) extensionsToInstall);
       targetExtensionTuples = flatten (map (name: getTargetPkgTuples pkgs name targets targets stdenv) targetExtensionsToInstall);
