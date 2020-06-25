@@ -349,5 +349,5 @@ rec {
   #   latest.rustChannels.nightly.rust-std
 
   # For a specific date:
-  #   rustChannelOf { date = "2017-06-06"; channel = "beta"; }.rust
+  #   (rustChannelOf { date = "2017-06-06"; channel = "beta"; }).rust
 }
