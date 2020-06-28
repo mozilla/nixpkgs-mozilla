@@ -129,12 +129,37 @@ let
     in
       extensionsToInstall;
 
+  # only return extensions that are specified in extensions and actually exist
+  # this allows users to specify packages that they want to download,
+  # but are okay to ignore if they are not, for example, in the latest nightly release
+  getOptionalExtensions = pkgs: pkgname: stdenv: extensions:
+    let
+      inherit (builtins) head;
+      inherit (super.lib) concatStringsSep subtractLists intersectLists warn;
+      availableExtensions = getExtensions pkgs pkgname stdenv;
+      missingExtensions = subtractLists availableExtensions extensions;
+      optionalExtensions =
+        if missingExtensions == [] then extensions else warn ''
+          While compiling ${pkgname}: some extensions were not available.
+          Skipping extensions ${missingExtensions} ...''
+          subtractLists missingExtensions extensions;
+    in
+    optionalExtensions;
+
+  getOptionalAndRequiredExtensions = pkgs: pkgname: stdenv: extensions:
+  let
+    inherit (super.lib) intersectLists;
+    requiredExtensions = checkMissingExtensions pkgs pkgname stdenv extensions;
+    optionalExtensions = getOptionalExtensions pkgs pkgname stdenv extensions;
+  in
+    intersectLists requiredExtensions optionalExtensions;
+
   getComponents = pkgs: pkgname: targets: extensions: targetExtensions: stdenv: fetchurl:
     let
       inherit (builtins) head map;
       inherit (super.lib) flatten remove subtractLists unique;
       targetExtensionsToInstall = checkMissingExtensions pkgs pkgname stdenv targetExtensions;
-      extensionsToInstall = checkMissingExtensions pkgs pkgname stdenv extensions;
+      extensionsToInstall = getOptionalAndRequiredExtensions pkgs pkgname stdenv extensions;
       hostTargets = [ "*" (hostTripleOf stdenv.system)];
       pkgTuples = flatten (getTargetPkgTuples pkgs pkgname hostTargets targets stdenv);
       extensionTuples = flatten (map (name: getTargetPkgTuples pkgs name hostTargets targets stdenv) extensionsToInstall);
@@ -267,7 +292,7 @@ let
       pkgs = fromTOML (builtins.readFile manifest);
     in
     flip mapAttrs pkgs.pkg (name: pkg:
-      makeOverridable ({extensions, targets, targetExtensions}:
+      makeOverridable ({extensions, targets, targetExtensions, optionalExtensions}:
         let
           version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
           version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
@@ -299,7 +324,7 @@ let
 
             meta.platforms = stdenv.lib.platforms.all;
           }
-      ) { extensions = []; targets = []; targetExtensions = []; }
+      ) { extensions = []; targets = []; targetExtensions = []; optionalExtensions = []; }
     );
 
   fromManifest = sha256: manifest: { stdenv, fetchurl, patchelf }:
