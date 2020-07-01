@@ -175,9 +175,19 @@ let
                 if [[ "$i" =~ .build-id ]]; then continue; fi
                 if ! isELF "$i"; then continue; fi
                 echo "setting interpreter of $i"
-                patchelf \
-                  --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
-                  "$i" || true
+                
+                if [[ -x "$i" ]]; then
+                  # Handle executables
+                  patchelf \
+                    --set-interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+                    --set-rpath "${super.lib.makeLibraryPath [ self.zlib ]}:$out/lib" \
+                    "$i" || true
+                else
+                  # Handle libraries
+                  patchelf \
+                    --set-rpath "${super.lib.makeLibraryPath [ self.zlib ]}:$out/lib" \
+                    "$i" || true
+                fi
               done < <(find "$dir" -type f -print0)
             }
 
