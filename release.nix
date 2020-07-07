@@ -100,6 +100,8 @@ let
     latest = {
       "firefox-nightly-bin" = build [ "latest" "firefox-nightly-bin" ];
     };
+
+    git-cinnabar = build [ "git-cinnabar" ];
   };
 
 in jobs

@@ -5,6 +5,7 @@
 , gettext
 , git
 , mercurial
+, curl
 }:
 
 # NOTE: git-cinnabar depends on a specific version of git-core, thus you should
@@ -13,7 +14,7 @@
 # NOTE: This package only provides git-cinnabar tools, as a git users might want
 # to have additional commands not provided by this forked version of git-core.
 stdenv.mkDerivation rec {
-  version = "0.5.2";
+  version = "0.5.4";
   name = "git-cinnabar-${version}";
   src = fetchFromGitHub {
     owner = "glandium";
@@ -21,9 +22,9 @@ stdenv.mkDerivation rec {
     inherit name;
     rev = version; # tag name
     fetchSubmodules = true;
-    sha256 = "1jkwrv349jap3yz7giw5f0nmslgnrwzkhni0kx7f5fl9411ghis4";
+    sha256 = "1cjn2cc6mj4m736wxab9s6qx83p5n5ha8cr3x84s9ra6rxs8d7pi";
   };
-  buildInputs = [ autoconf python gettext git ];
+  buildInputs = [ autoconf python gettext git curl ];
 
   ZLIB_PATH = zlib;
   ZLIB_DEV_PATH = zlib.dev;
