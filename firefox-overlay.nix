@@ -45,7 +45,8 @@ let
 
   # The timestamp argument is a yyyy-mm-dd-hh-mm-ss date, which corresponds to
   # one specific version. This is used mostly for bisecting.
-  versionInfo = { name, version, release, system ? arch, timestamp ? null }: with builtins;
+  versionInfo = { name, version, release, system ? arch, timestamp ? null, info ? null }: with builtins;
+    if (info != null) then info else
     if release then
       # For versions such as Beta & Release:
       # https://download.cdn.mozilla.net/pub/firefox/releases/55.0b3/SHA256SUMS
