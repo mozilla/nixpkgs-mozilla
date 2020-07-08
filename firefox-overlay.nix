@@ -156,7 +156,7 @@ in
 {
   lib = super.lib // {
     firefoxOverlay = {
-      inherit firefoxVersion;
+      inherit firefoxVersion versionInfo firefox_versions;
     };
   };
 
