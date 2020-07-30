@@ -53,7 +53,7 @@ let
   getComponentsWithFixedPlatform = pkgs: pkgname: stdenv:
     let
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${super.rust.toRustTarget stdenv.targetPlatform} or pkg.target."*";
+      srcInfo = pkg.target.${toRustTarget stdenv.targetPlatform} or pkg.target."*";
       components = srcInfo.components or [];
       componentNamesList =
         builtins.map (pkg: pkg.pkg) (builtins.filter (pkg: (pkg.target != "*")) components);
@@ -64,7 +64,7 @@ let
     let
       inherit (super.lib) unique;
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${super.rust.toRustTarget stdenv.targetPlatform} or pkg.target."*";
+      srcInfo = pkg.target.${toRustTarget stdenv.targetPlatform} or pkg.target."*";
       extensions = srcInfo.extensions or [];
       extensionNamesList = unique (builtins.map (pkg: pkg.pkg) extensions);
     in
@@ -72,6 +72,15 @@ let
 
   hasTarget = pkgs: pkgname: target:
     pkgs ? ${pkgname}.target.${target};
+
+  toRustTarget = super.rust.toRustTarget or (platform: with platform.parsed; let
+    cpu_ = {
+      "armv7a" = "armv7";
+      "armv7l" = "armv7";
+      "armv6l" = "arm";
+    }.${cpu.name} or platform.rustc.arch or cpu.name;
+  in platform.rustc.config
+    or "${cpu_}-${vendor.name}-${kernel.name}${lib.optionalString (abi.name != "unknown") "-${abi.name}"}");
 
   getTuples = pkgs: name: targets:
     builtins.map (target: { inherit name target; }) (builtins.filter (target: hasTarget pkgs name target) targets);
@@ -119,7 +128,7 @@ let
       inherit (super.lib) flatten remove subtractLists unique;
       targetExtensionsToInstall = checkMissingExtensions pkgs pkgname stdenv targetExtensions;
       extensionsToInstall = checkMissingExtensions pkgs pkgname stdenv extensions;
-      hostTargets = [ "*" (super.rust.toRustTarget stdenv.hostPlatform) (super.rust.toRustTarget stdenv.targetPlatform) ];
+      hostTargets = [ "*" (toRustTarget stdenv.hostPlatform) (toRustTarget stdenv.targetPlatform) ];
       pkgTuples = flatten (getTargetPkgTuples pkgs pkgname hostTargets targets stdenv);
       extensionTuples = flatten (map (name: getTargetPkgTuples pkgs name hostTargets targets stdenv) extensionsToInstall);
       targetExtensionTuples = flatten (map (name: getTargetPkgTuples pkgs name targets targets stdenv) targetExtensionsToInstall);
