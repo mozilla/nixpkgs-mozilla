@@ -80,7 +80,7 @@ let
       "armv6l" = "arm";
     }.${cpu.name} or platform.rustc.arch or cpu.name;
   in platform.rustc.config
-    or "${cpu_}-${vendor.name}-${kernel.name}${lib.optionalString (abi.name != "unknown") "-${abi.name}"}");
+    or "${cpu_}-${vendor.name}-${kernel.name}${super.lib.optionalString (abi.name != "unknown") "-${abi.name}"}");
 
   getTuples = pkgs: name: targets:
     builtins.map (target: { inherit name target; }) (builtins.filter (target: hasTarget pkgs name target) targets);
