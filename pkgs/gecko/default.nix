@@ -1,7 +1,7 @@
 { geckoSrc ? null, lib
 , stdenv, fetchFromGitHub, pythonFull, which, autoconf213
 , perl, unzip, zip, gnumake, yasm, pkgconfig, xlibs, gnome2, pango, freetype, fontconfig, cairo
-, dbus, dbus_glib, alsaLib, libpulseaudio, gstreamer, gst_plugins_base
+, dbus, dbus_glib, alsaLib, libpulseaudio
 , gtk3, glib, gobjectIntrospection, gdk_pixbuf, atk, gtk2
 , git, mercurial, openssl, cmake, procps
 , libnotify
@@ -65,7 +65,6 @@ let
     dbus dbus_glib
 
     alsaLib libpulseaudio
-    gstreamer gst_plugins_base
 
     gtk3 glib gobjectIntrospection gdk_pixbuf atk
     gtk2 gnome2.GConf
