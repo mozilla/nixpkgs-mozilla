@@ -310,6 +310,35 @@ rec {
     };
   };
 
+  # Params:
+  #   rustChannel:
+  #     A rust channel created using 
+  #     any of the functions below
+  # Returns 
+  #   A rustPlatform which is 
+  #   compatible with nixpkgs.rustPlatform
+  rustPlatformOf = rustChannel: 
+  let 
+    rustc    = rustChannel.rust;
+    cargo    = rustChannel.cargo;
+    rustcSrc = rustChannel.rust-src;
+
+  fetchCargoTarball = super.rustPlatform.fetchCargoTarball.override{
+    inherit cargo;
+  };
+
+  buildRustPackage = super.rustPlatform.buildRustPackage.override{
+    inherit rustc cargo fetchCargoTarball;
+  };
+  in
+  {
+    rust = {
+      inherit rustc cargo;
+    };
+
+    inherit fetchCargoTarball buildRustPackage rustcSrc;
+  };
+
   rustChannelOf = { sha256 ? null, ... } @ manifest_args: fromManifest
     sha256 (manifest_v2_url manifest_args)
     { inherit (self) stdenv fetchurl patchelf; }
