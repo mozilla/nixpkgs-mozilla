@@ -39,7 +39,7 @@ Rust overlay
 
 **NOTE:** Nix overlays only works on up-to-date versions of NixOS/nixpkgs, starting from 17.03.
 
-A nixpkgs overlay is provided to contains all of the latest rust releases.
+A nixpkgs overlay is provided to contain all of the latest rust releases.
 
 To use the rust overlay run the ``./rust-overlay-install.sh`` command. It will
 link the current ``./rust-overlay.nix`` into your ``~/.config/nixpkgs/overlays`` folder.
