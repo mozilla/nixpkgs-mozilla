@@ -97,7 +97,7 @@ let
       pkg = pkgs.${pkgname};
       srcInfo = pkg.target.${target};
     in
-      (super.fetchurl { url = srcInfo.xz_url; sha256 = srcInfo.xz_hash; });
+      (super.fetchurl { url = srcInfo.xz_url or srcInfo.url; sha256 = srcInfo.xz_hash or srcInfo.hash; });
 
   checkMissingExtensions = pkgs: pkgname: stdenv: extensions:
     let
