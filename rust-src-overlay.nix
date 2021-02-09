@@ -3,8 +3,8 @@
 
 self: super:
 
-let mapAttrs = super.stdenv.lib.mapAttrs;
-    flip = super.stdenv.lib.flip;
+let mapAttrs = super.lib.mapAttrs;
+    flip = super.lib.flip;
 in {
   # install stable rust with rust-src:
   # "nix-env -i -A nixos.latest.rustChannels.stable.rust"
