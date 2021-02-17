@@ -276,7 +276,9 @@ let
               # If rustc or rustdoc is in the derivation, we need to copy their
               # executable into the final derivation. This is required
               # for making them find the correct SYSROOT.
-              for target in $out/bin/{rustc,rustdoc}; do
+              # Similarly, we copy the python files for gdb pretty-printers since
+              # its auto-load-safe-path mechanism doesn't like symlinked files.
+              for target in $out/bin/{rustc,rustdoc} $out/lib/rustlib/etc/*.py; do
                 if [ -e $target ]; then
                   cp --remove-destination "$(realpath -e $target)" $target
                 fi
