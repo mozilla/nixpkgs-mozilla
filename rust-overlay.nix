@@ -131,10 +131,10 @@ let
     in
       map (tuple: { name = tuple.name; src = (getFetchUrl pkgs tuple.name tuple.target stdenv fetchurl); }) pkgsTuplesToInstall;
 
-  installComponents = stdenv: namesAndSrcs:
+  installComponents = { stdenv, namesAndSrcs, installDoc }:
     let
       inherit (builtins) map;
-      installComponent = name: src:
+      installComponent = installDoc: { name, src }:
         stdenv.mkDerivation {
           inherit name;
           inherit src;
@@ -147,7 +147,7 @@ let
           # This code is inspired by patchelf/setup-hook.sh to iterate over all binaries.
           installPhase = ''
             patchShebangs install.sh
-            CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose
+            CFG_DISABLE_LDCONFIG=1 ./install.sh --prefix=$out --verbose ${self.lib.optionalString (!installDoc) "--without=rust-docs"}
 
             setInterpreter() {
               local dir="$1"
@@ -159,7 +159,7 @@ let
                 if [[ "$i" =~ .build-id ]]; then continue; fi
                 if ! isELF "$i"; then continue; fi
                 echo "setting interpreter of $i"
-                
+
                 if [[ -x "$i" ]]; then
                   # Handle executables
                   patchelf \
@@ -223,7 +223,7 @@ let
           dontStrip = true;
         };
     in
-      map (nameAndSrc: (installComponent nameAndSrc.name nameAndSrc.src)) namesAndSrcs;
+      map (installComponent installDoc) namesAndSrcs;
 
   # Manifest files are organized as follow:
   # { date = "2017-03-03";
@@ -266,7 +266,7 @@ let
           version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
           version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
           namesAndSrcs = getComponents pkgs.pkg name targets extensions targetExtensions stdenv fetchurl;
-          components = installComponents stdenv namesAndSrcs;
+          components = installComponents { inherit stdenv namesAndSrcs installDoc; };
           componentsOuts = builtins.map (comp: (super.lib.strings.escapeNixString (super.lib.getOutput "out" comp))) components;
         in
           super.pkgs.symlinkJoin {
@@ -312,10 +312,12 @@ rec {
     };
   };
 
-  rustChannelOf = { sha256 ? null, ... } @ manifest_args: fromManifest
+  rustChannelOf = { sha256 ? null, installDoc ? true, ... } @ manifest_args: fromManifest
     sha256 (manifest_v2_url manifest_args)
-    { inherit (self) stdenv lib fetchurl patchelf; }
-    ;
+    {
+      inherit (self) stdenv fetchurl patchelf;
+      inherit installDoc;
+    };
 
   # Set of packages which are automagically updated. Do not rely on these for
   # reproducible builds.
