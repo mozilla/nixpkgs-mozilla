@@ -1,16 +1,13 @@
 # This file provide the latest binary versions of Firefox published by Mozilla.
 self: super:
 
-# firefox.key file was downloaded from:
-#   https://gpg.mozilla.org/pks/lookup?search=Mozilla+Software+Releases+%3Crelease%40mozilla.com%3E&op=get
-#
-# Now, the KEY file is stored next to the published version, such as:
-#   https://archive.mozilla.org/pub/firefox/releases/66.0.2/KEY
-#
-# Any time there are changes, this file should be copied by the manager of the firefox-overlay and move
-# in this repository under the name firefox.key.
-
 let
+  # This URL needs to be updated about every 2 years when the subkey is rotated.
+  pgpKey = super.fetchurl {
+    url = "https://download.cdn.mozilla.net/pub/firefox/candidates/89.0-candidates/build2/KEY";
+    sha256 = "1zm3cq854v4aabzzginmjxdm4gidcf5b522h58272fb0x4z3nimw";
+  };
+
   # This file is currently maintained manually, if this Nix expression attempt
   # to download the wrong version, this is likely to be the problem.
   #
@@ -97,7 +94,7 @@ let
     } ''
       HOME=`mktemp -d`
       set -eu
-      cat ${./firefox.key} | gpg --import
+      gpg --import < ${pgpKey}
       gpgv --keyring=$HOME/.gnupg/pubring.kbx $ASC $FILE
       mkdir $out
     '';
@@ -132,7 +129,7 @@ let
           HOME=`mktemp -d`
           set -eu
           export PATH="$PATH:${self.gnupg}/bin/"
-          cat ${./firefox.key} | gpg --import
+          gpg --import < ${pgpKey}
           gpgv --keyring=$HOME/.gnupg/pubring.kbx ${asc} $out
         '';
       };
@@ -157,7 +154,7 @@ in
 {
   lib = super.lib // {
     firefoxOverlay = {
-      inherit firefoxVersion versionInfo firefox_versions;
+      inherit pgpKey firefoxVersion versionInfo firefox_versions;
     };
   };
 
