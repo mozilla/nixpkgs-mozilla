@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, noSysDirs
+{ stdenv, lib, fetchurl, noSysDirs
 , langC ? true, langCC ? true, langFortran ? false
 , langJava ? false
 , langAda ? false
@@ -46,7 +46,7 @@ assert stdenv.isDarwin -> gnused != null;
 # The go frontend is written in c++
 assert langGo -> langCC;
 
-with stdenv.lib;
+with lib;
 with builtins;
 
 let version = "4.7.3";
@@ -99,12 +99,12 @@ let version = "4.7.3";
 
     /* Platform flags */
     platformFlags = let
-        gccArch = stdenv.lib.attrByPath [ "platform" "gcc" "arch" ] null stdenv;
-        gccCpu = stdenv.lib.attrByPath [ "platform" "gcc" "cpu" ] null stdenv;
-        gccAbi = stdenv.lib.attrByPath [ "platform" "gcc" "abi" ] null stdenv;
-        gccFpu = stdenv.lib.attrByPath [ "platform" "gcc" "fpu" ] null stdenv;
-        gccFloat = stdenv.lib.attrByPath [ "platform" "gcc" "float" ] null stdenv;
-        gccMode = stdenv.lib.attrByPath [ "platform" "gcc" "mode" ] null stdenv;
+        gccArch = lib.attrByPath [ "platform" "gcc" "arch" ] null stdenv;
+        gccCpu = lib.attrByPath [ "platform" "gcc" "cpu" ] null stdenv;
+        gccAbi = lib.attrByPath [ "platform" "gcc" "abi" ] null stdenv;
+        gccFpu = lib.attrByPath [ "platform" "gcc" "fpu" ] null stdenv;
+        gccFloat = lib.attrByPath [ "platform" "gcc" "float" ] null stdenv;
+        gccMode = lib.attrByPath [ "platform" "gcc" "mode" ] null stdenv;
         withArch = if gccArch != null then " --with-arch=${gccArch}" else "";
         withCpu = if gccCpu != null then " --with-cpu=${gccCpu}" else "";
         withAbi = if gccAbi != null then " --with-abi=${gccAbi}" else "";
@@ -122,12 +122,12 @@ let version = "4.7.3";
     /* Cross-gcc settings */
     crossMingw = (cross != null && cross.libc == "msvcrt");
     crossConfigureFlags = let
-        gccArch = stdenv.lib.attrByPath [ "gcc" "arch" ] null cross;
-        gccCpu = stdenv.lib.attrByPath [ "gcc" "cpu" ] null cross;
-        gccAbi = stdenv.lib.attrByPath [ "gcc" "abi" ] null cross;
-        gccFpu = stdenv.lib.attrByPath [ "gcc" "fpu" ] null cross;
-        gccFloat = stdenv.lib.attrByPath [ "gcc" "float" ] null cross;
-        gccMode = stdenv.lib.attrByPath [ "gcc" "mode" ] null cross;
+        gccArch = lib.attrByPath [ "gcc" "arch" ] null cross;
+        gccCpu = lib.attrByPath [ "gcc" "cpu" ] null cross;
+        gccAbi = lib.attrByPath [ "gcc" "abi" ] null cross;
+        gccFpu = lib.attrByPath [ "gcc" "fpu" ] null cross;
+        gccFloat = lib.attrByPath [ "gcc" "float" ] null cross;
+        gccMode = lib.attrByPath [ "gcc" "mode" ] null cross;
         withArch = if gccArch != null then " --with-arch=${gccArch}" else "";
         withCpu = if gccCpu != null then " --with-cpu=${gccCpu}" else "";
         withAbi = if gccAbi != null then " --with-abi=${gccAbi}" else "";
@@ -228,8 +228,8 @@ stdenv.mkDerivation ({
         gnu_h = "gcc/config/gnu.h";
         extraCPPDeps =
              libc.propagatedBuildInputs
-          ++ stdenv.lib.optional (libpthreadCross != null) libpthreadCross
-          ++ stdenv.lib.optional (libpthread != null) libpthread;
+          ++ lib.optional (libpthreadCross != null) libpthreadCross
+          ++ lib.optional (libpthread != null) libpthread;
         extraCPPSpec =
           concatStrings (intersperse " "
                           (map (x: "-I${x}/include") extraCPPDeps));
@@ -289,17 +289,17 @@ stdenv.mkDerivation ({
     ++ (optional stdenv.isDarwin gnused)
     ;
 
-  NIX_LDFLAGS = stdenv.lib.optionalString  stdenv.isSunOS "-lm -ldl";
+  NIX_LDFLAGS = lib.optionalString  stdenv.isSunOS "-lm -ldl";
 
   preConfigure = ''
     configureFlagsArray=(
-      ${stdenv.lib.optionalString (ppl != null && ppl ? dontDisableStatic && ppl.dontDisableStatic)
+      ${lib.optionalString (ppl != null && ppl ? dontDisableStatic && ppl.dontDisableStatic)
         "'--with-host-libstdcxx=-lstdc++ -lgcc_s'"}
-      ${stdenv.lib.optionalString (ppl != null && stdenv.isSunOS)
+      ${lib.optionalString (ppl != null && stdenv.isSunOS)
         "\"--with-host-libstdcxx=-Wl,-rpath,\$prefix/lib/amd64 -lstdc++\"
          \"--with-boot-ldflags=-L../prev-x86_64-pc-solaris2.11/libstdc++-v3/src/.libs\""}
     );
-    ${stdenv.lib.optionalString (stdenv.isSunOS && stdenv.is64bit)
+    ${lib.optionalString (stdenv.isSunOS && stdenv.is64bit)
       ''
         export NIX_LDFLAGS=`echo $NIX_LDFLAGS | sed -e s~$prefix/lib~$prefix/lib/amd64~g`
         export LDFLAGS_FOR_TARGET="-Wl,-rpath,$prefix/lib/amd64 $LDFLAGS_FOR_TARGET"
@@ -376,11 +376,11 @@ stdenv.mkDerivation ({
     else "install";
 
   crossAttrs = let
-    xgccArch = stdenv.lib.attrByPath [ "gcc" "arch" ] null stdenv.cross;
-    xgccCpu = stdenv.lib.attrByPath [ "gcc" "cpu" ] null stdenv.cross;
-    xgccAbi = stdenv.lib.attrByPath [ "gcc" "abi" ] null stdenv.cross;
-    xgccFpu = stdenv.lib.attrByPath [ "gcc" "fpu" ] null stdenv.cross;
-    xgccFloat = stdenv.lib.attrByPath [ "gcc" "float" ] null stdenv.cross;
+    xgccArch = lib.attrByPath [ "gcc" "arch" ] null stdenv.cross;
+    xgccCpu = lib.attrByPath [ "gcc" "cpu" ] null stdenv.cross;
+    xgccAbi = lib.attrByPath [ "gcc" "abi" ] null stdenv.cross;
+    xgccFpu = lib.attrByPath [ "gcc" "fpu" ] null stdenv.cross;
+    xgccFloat = lib.attrByPath [ "gcc" "float" ] null stdenv.cross;
     xwithArch = if xgccArch != null then " --with-arch=${xgccArch}" else "";
     xwithCpu = if xgccCpu != null then " --with-cpu=${xgccCpu}" else "";
     xwithAbi = if xgccAbi != null then " --with-abi=${xgccAbi}" else "";
@@ -510,15 +510,15 @@ stdenv.mkDerivation ({
     '';
 
     maintainers = [
-      stdenv.lib.maintainers.ludo
-      stdenv.lib.maintainers.viric
-      stdenv.lib.maintainers.shlevy
+      lib.maintainers.ludo
+      lib.maintainers.viric
+      lib.maintainers.shlevy
     ];
 
     # Volunteers needed for the {Cyg,Dar}win ports of *PPL.
     # gnatboot is not available out of linux platforms, so we disable the darwin build
     # for the gnat (ada compiler).
-    platforms = stdenv.lib.platforms.linux ++ optionals (langAda == false && libelf == null) [ "i686-darwin" ];
+    platforms = lib.platforms.linux ++ optionals (langAda == false && libelf == null) [ "i686-darwin" ];
   };
 }
 
