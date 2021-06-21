@@ -23,7 +23,7 @@ let
 
   inherit (lib) updateFromGitHub importJSON optionals inNixShell;
 
-  gcc = if stdenv.cc.isGNU then stdenv.cc.cc else stdenv.cc.cc.gcc;
+  gcc = if stdenv.cc.isGNU then stdenv.cc.cc else stdenv.cc.cc.stdenv.cc.cc;
 
   # Gecko sources are huge, we do not want to import them in the nix-store when
   # we use this expression for making a build environment.
