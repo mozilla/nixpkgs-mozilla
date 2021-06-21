@@ -6,7 +6,7 @@ self: super:
     gcc9Stdenv = self.gcc9Stdenv // {
       mkDerivation = args: self.gcc9Stdenv.mkDerivation (args // {
         meta = args.meta // {
-          platforms = self.lib.platforms.linux;
+          platforms = super.lib.platforms.linux;
         };
       });
     };
