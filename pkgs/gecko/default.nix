@@ -1,5 +1,5 @@
 { geckoSrc ? null, lib
-, stdenv, fetchFromGitHub, pythonFull, which, autoconf213
+, stdenv, fetchFromGitHub, pythonFull, which, autoconf213, m4
 , perl, unzip, zip, gnumake, yasm, pkgconfig, xlibs, gnome2, pango, freetype, fontconfig, cairo
 , dbus, dbus_glib, alsaLib, libpulseaudio
 , gtk3, glib, gobjectIntrospection, gdk_pixbuf, atk, gtk2
@@ -40,7 +40,7 @@ let
   buildInputs = [
 
     # Expected by "mach"
-    pythonFull setuptools which autoconf213
+    pythonFull setuptools which autoconf213 m4
 
     # Expected by the configure script
     perl unzip zip gnumake yasm pkgconfig
