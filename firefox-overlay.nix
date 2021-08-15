@@ -145,7 +145,12 @@ let
       # Add a dependency on the signature check.
       src = fetchVersion info;
     })) {
-      browserName = "firefox";
+      ${
+        if super.firefox-unwrapped ? applicationName then
+          "applicationName"
+        else
+          "browserName"
+      } = "firefox";
       pname = "firefox-bin";
       desktopName = "Firefox";
     };
