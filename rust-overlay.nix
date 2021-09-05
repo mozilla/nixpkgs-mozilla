@@ -261,7 +261,7 @@ let
       pkgs = fromTOML (builtins.readFile manifest);
     in
     flip mapAttrs pkgs.pkg (name: pkg:
-      makeOverridable ({extensions, targets, targetExtensions}:
+      makeOverridable ({extensions, targets, targetExtensions, installDoc ? false}:
         let
           version' = builtins.match "([^ ]*) [(]([^ ]*) ([^ ]*)[)]" pkg.version;
           version = "${elemAt version' 0}-${elemAt version' 2}-${elemAt version' 1}";
@@ -312,11 +312,10 @@ rec {
     };
   };
 
-  rustChannelOf = { sha256 ? null, installDoc ? true, ... } @ manifest_args: fromManifest
+  rustChannelOf = { sha256 ? null, ... } @ manifest_args: fromManifest
     sha256 (manifest_v2_url manifest_args)
     {
       inherit (self) stdenv fetchurl patchelf;
-      inherit installDoc;
     };
 
   # Set of packages which are automagically updated. Do not rely on these for
