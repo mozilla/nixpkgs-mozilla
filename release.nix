@@ -59,6 +59,7 @@ let
     "clang5"
     "clang6"
     "clang7"
+    "clang12"
     "gcc"
     "gcc6"
     "gcc5"
