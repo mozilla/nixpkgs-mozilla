@@ -151,7 +151,7 @@ default one, with your own options.
 
   ac_add_options --enable-js-shell
   ac_add_options --disable-tests
-  [~/mozilla-central] export MOZCONFIG=$(pwd)/.mozconfig
+  [~/mozilla-central] export MOZCONFIG="$(pwd)/.mozconfig"
   [~/mozilla-central] python ./mach build
 
 To avoid repeating yourself, you can also rely on the ``NIX_SHELL_HOOK``
