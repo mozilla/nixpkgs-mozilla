@@ -82,6 +82,7 @@ let
     clang6 = llvmPackages_6.clang or llvmPackages.clang;
     clang7 = llvmPackages_7.clang or llvmPackages.clang;
     clang12 = llvmPackages_12.clang or llvmPackages.clang;
+    clang13 = llvmPackages_13.clang or llvmPackages.clang;
     gcc = gcc;
     gcc6 = gcc6;
     gcc5 = gcc5;
