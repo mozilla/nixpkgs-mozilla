@@ -6,6 +6,7 @@
 , git, mercurial, openssl, cmake, procps
 , libnotify
 , valgrind, gdb, rr
+, inotify-tools
 , setuptools
 , rust # rust & cargo bundled. (otheriwse use pkgs.rust.{rustc,cargo})
 , buildFHSUserEnv # Build a FHS environment with all Gecko dependencies.
@@ -108,6 +109,7 @@ let
     valgrind gdb ccache
     (if stdenv.isAarch64 then null else rr)
     fzf # needed by "mach try fuzzy"
+    inotify-tools # Workaround download of prebuilt binaries.
   ];
 
   # bindgen.configure now has a rule to check that with-libclang-path matches CC
