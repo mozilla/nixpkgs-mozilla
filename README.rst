@@ -131,6 +131,9 @@ toolchain or architecture.
   ~/mozilla-central$ nix-shell ../nixpkgs-mozilla/release.nix -A gecko.x86_64-linux.gcc --pure
     ... pull the rust compiler
     ... compile the toolchain
+  # First time only - initialize virtualenv
+  [~/mozilla-central] python ./mach create-mach-environment
+     ... create .mozbuild/_virtualenvs/mach
   [~/mozilla-central] python ./mach build
     ... build firefox desktop
   [~/mozilla-central] python ./mach run
