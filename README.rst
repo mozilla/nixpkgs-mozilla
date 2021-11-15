@@ -9,7 +9,6 @@ Current packages
 
 - gecko (https://github.com/mozilla/gecko-dev)
 - firefox-bin variants including Nightly
-- VidyoDesktop ()
 
 firefox-bin variants
 --------------------
