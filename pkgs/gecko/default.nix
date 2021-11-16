@@ -126,6 +126,8 @@ let
     archLib=$cxxLib/$( ${gcc}/bin/gcc -dumpmachine )
 
     cat - > $MOZCONFIG <<EOF
+    ac_add_options --disable-bootstrap
+    #ac_add_options --without-wasm-sandboxed-libraries # this may be needed
     mk_add_options AUTOCONF=${autoconf213}/bin/autoconf
     ac_add_options --with-libclang-path=${libclang_path}
     ac_add_options --with-clang-path=${clang_path}
