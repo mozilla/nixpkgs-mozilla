@@ -47,7 +47,7 @@ let
     perl unzip zip gnumake yasm pkgconfig
 
     xlibs.libICE xlibs.libSM xlibs.libX11 xlibs.libXau xlibs.libxcb
-    xlibs.libXdmcp xlibs.libXext xlibs.libXt
+    xlibs.libXdmcp xlibs.libXext xlibs.libXt xlibs.libXtst
     xlibs.libXcomposite
     xlibs.libXfixes
     xlibs.libXdamage xlibs.libXrender
