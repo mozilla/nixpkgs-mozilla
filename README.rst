@@ -185,12 +185,8 @@ To get your commits into Phabricator, some options include:
   <https://github.com/mozilla-conduit/arcanist>`_ but it isn't yet
   packaged. (PRs welcome.)
 
-- `moz-phab <https://github.com/mozilla-conduit/review>`_, a small
-  Python script that wraps Arcanist to try to handle commit series
-  better than stock Arcanist. Because it wraps Arcanist, it suffers
-  from the same problems that Arcanist does if you use git-cinnabar,
-  and may work better if you use Mozilla's Arcanist fork.  ``moz-phab``
-  isn't packaged yet. (PRs welcome.)
+- `moz-phab <https://github.com/mozilla-conduit/review>`_, an in-house
+  CLI for Phabricator. It's available in nix packages (unstable channel).
 
 - `phlay <https://github.com/mystor/phlay>`_, a small Python script
   that speaks to the Phabricator API directly. This repository ships a
