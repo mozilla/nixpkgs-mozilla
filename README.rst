@@ -70,6 +70,33 @@ Example of using in ```shell.nix```:
      ];
    }
 
+Flake usage
+-----------
+This repository contains a minimal flake interface for the various
+overlays in this repository. To use it in your own flake, add it as
+an input to your ``flake.nix``:
+
+.. code:: nix
+ {
+   inputs.nixpkgs.url = github:NixOS/nixpkgs;
+   inputs.nixpkgs-mozilla.url = github:mozilla/nixpkgs-mozilla;
+
+   outputs = { self, nixpkgs, nixpkgs-mozilla }: {
+     devShell."x86_64-linux" = let
+       pkgs = import nixpkgs { system = "x86_64-linux"; overlays = [ nixpkgs-mozilla.overlay ]; };
+     in pkgs.mkShell {
+       buildInputs = [ pkgs.latest.rustChannels.nightly.rust ];
+     };
+   };
+  }
+The available overlays are ``nixpkgs-mozilla.overlay`` for the
+default overlay containing everything, and
+``nixpkgs-mozilla.{lib, rust, rr, firefox, git-cinnabar}-overlay``
+respectively. Depending on your use case, you might need to set the
+``--impure`` flag when invoking the ``nix`` command. This is because
+this repository fetches resources from non-pinned URLs
+non-reproducibly.
+
 Firefox Development Environment
 -------------------------------
 
