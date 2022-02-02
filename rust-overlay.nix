@@ -11,20 +11,26 @@ let
 
   parseRustToolchain = file: with builtins;
     if file == null then
-      {}
+      { }
+    # Parse *.toml files as TOML
+    else if self.lib.strings.hasSuffix ".toml" file then
+      ({ channel ? null, date ? null, ... }: { inherit channel date; })
+        (fromTOML (readFile file)).toolchain
     else
-    let
-      # matches toolchain descriptions of type "nightly" or "nightly-2020-01-01"
-      channel_by_name = match "([a-z]+)(-([0-9]{4}-[0-9]{2}-[0-9]{2}))?.*" (readFile file);
-      # matches toolchain descriptions of type "1.34.0" or "1.34.0-2019-04-10"
-      channel_by_version = match "([0-9]+\\.[0-9]+\\.[0-9]+)(-([0-9]{4}-[0-9]{2}-[0-9]{2}))?.*" (readFile file);
-    in
+    # Otherwise, assume the file contains just a rust version string
+      let
+        str = readFile file;
+        # Match toolchain descriptions of type "nightly" or "nightly-2020-01-01"
+        channel_by_name = match "([a-z]+)(-([0-9]{4}-[0-9]{2}-[0-9]{2}))?.*" str;
+        # Match toolchain descriptions of type "1.34.0" or "1.34.0-2019-04-10"
+        channel_by_version = match "([0-9]+\\.[0-9]+\\.[0-9]+)(-([0-9]{4}-[0-9]{2}-[0-9]{2}))?.*" str;
+      in
       (x: { channel = head x; date = (head (tail (tail x))); }) (
         if channel_by_name != null then
           channel_by_name
         else
           channel_by_version
-        );
+      );
 
   # See https://github.com/rust-lang-nursery/rustup.rs/blob/master/src/dist/src/dist.rs
   defaultDistRoot = "https://static.rust-lang.org";
