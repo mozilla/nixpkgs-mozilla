@@ -42,7 +42,7 @@ let
 
   # The timestamp argument is a yyyy-mm-dd-hh-mm-ss date, which corresponds to
   # one specific version. This is used mostly for bisecting.
-  versionInfo = { name, version, release, system ? arch, timestamp ? null, info ? null }: with builtins;
+  versionInfo = { name, version, release, system ? arch, timestamp ? null, wmClass, info ? null }: with builtins;
     if (info != null) then info else
     if release then
       # For versions such as Beta & Release:
@@ -139,32 +139,49 @@ let
     with builtins;
     fromJSON (head (match "([0-9]+)[.].*" version.version));
 
-  firefoxVersion = version:
-    let info = versionInfo version; in
-    super.wrapFirefox ((self.firefox-bin-unwrapped.override {
-      generated = {
-        version = version.version;
-        sources = { inherit (info) url sha512; };
-      };
-    }).overrideAttrs (old: {
-      # Add a dependency on the signature check.
-      src = fetchVersion info;
+  wrapFirefoxCompat = { version, pkg }:
+    let
+      wrapper = super.wrapFirefox pkg {};
 
-      # Since Firefox 96.0a1, Firefox depends on libXtst, which is not yet
-      # reflected on Nixpkgs.
-      libPath = with super.lib;
-        old.libPath
-        + optionalString (96 >= getMajorVersion version) (":" + makeLibraryPath [self.xorg.libXtst]);
-    })) {
-      ${
-        if super.firefox-unwrapped ? applicationName then
-          "applicationName"
-        else
-          "browserName"
-      } = "firefox";
-      pname = "firefox-bin";
-      desktopName = "Firefox";
-    };
+      wrapperArgs = wrapper.override.__functionArgs;
+      wrapperHasArg = arg: builtins.hasAttr arg wrapperArgs;
+
+      nameArg = if wrapperHasArg "applicationName"
+                  then "applicationName"
+                  else "browserName";
+
+      requiredArgs = {
+        "${nameArg}" = "firefox";
+        pname = "firefox-bin";
+        desktopName = version.name;
+      };
+
+      extraArgs = if wrapperHasArg "wmClass"
+                    then { wmClass = version.wmClass; }
+                    else {};
+
+      allArgs = requiredArgs // extraArgs;
+    in wrapper.override allArgs;
+
+  firefoxVersion = version:
+    let
+      info = versionInfo version;
+      pkg = ((self.firefox-bin-unwrapped.override {
+        generated = {
+          version = version.version;
+          sources = { inherit (info) url sha512; };
+        };
+      }).overrideAttrs (old: {
+        # Add a dependency on the signature check.
+        src = fetchVersion info;
+
+        # Since Firefox 96.0a1, Firefox depends on libXtst, which is not yet
+        # reflected on Nixpkgs.
+        libPath = with super.lib;
+          old.libPath
+          + optionalString (96 >= getMajorVersion version) (":" + makeLibraryPath [self.xorg.libXtst]);
+      }));
+      in wrapFirefoxCompat { inherit version pkg; };
 in
 
 {
@@ -179,21 +196,25 @@ in
   latest = (super.latest or {}) // {
     firefox-nightly-bin = firefoxVersion {
       name = "Firefox Nightly";
+      wmClass = "firefox-nightly";
       version = firefox_versions.FIREFOX_NIGHTLY;
       release = false;
     };
     firefox-beta-bin = firefoxVersion {
       name = "Firefox Beta";
+      wmClass = "firefox-beta";
       version = firefox_versions.LATEST_FIREFOX_DEVEL_VERSION;
       release = true;
     };
     firefox-bin = firefoxVersion {
       name = "Firefox";
+      wmClass = "firefox";
       version = firefox_versions.LATEST_FIREFOX_VERSION;
       release = true;
     };
     firefox-esr-bin = firefoxVersion {
-      name = "Firefox Esr";
+      name = "Firefox ESR";
+      wmClass = "firefox";
       version = firefox_versions.FIREFOX_ESR;
       release = true;
     };
