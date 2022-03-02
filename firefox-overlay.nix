@@ -164,6 +164,9 @@ let
       } = "firefox";
       pname = "firefox-bin";
       desktopName = "Firefox";
+      extraPolicies = {
+        DisableAppUpdate = true;
+      };
     };
 in
 
