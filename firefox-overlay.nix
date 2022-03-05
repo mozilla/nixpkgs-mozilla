@@ -154,7 +154,7 @@ let
       # reflected on Nixpkgs.
       libPath = with super.lib;
         old.libPath
-        + optionalString (96 >= getMajorVersion version) (":" + makeLibraryPath [self.xorg.libXtst]);
+        + optionalString (96 <= getMajorVersion version) (":" + makeLibraryPath [self.xorg.libXtst]);
     })) {
       ${
         if super.firefox-unwrapped ? applicationName then
