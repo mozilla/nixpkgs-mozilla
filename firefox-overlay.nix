@@ -155,16 +155,7 @@ let
       libPath = with super.lib;
         old.libPath
         + optionalString (96 >= getMajorVersion version) (":" + makeLibraryPath [self.xorg.libXtst]);
-    })) {
-      ${
-        if super.firefox-unwrapped ? applicationName then
-          "applicationName"
-        else
-          "browserName"
-      } = "firefox";
-      pname = "firefox-bin";
-      desktopName = "Firefox";
-    };
+    })) { };
 in
 
 {
