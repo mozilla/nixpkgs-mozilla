@@ -158,7 +158,7 @@ let
     })) {
       ${
         if super.firefox-unwrapped ? binaryName then
-          "binaryName"
+          "applicationName"
         else if super.firefox-unwrapped ? applicationName then
           "applicationName"
         else
