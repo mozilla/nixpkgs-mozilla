@@ -143,7 +143,7 @@ let
     let
       wrapper = super.wrapFirefox pkg {};
 
-      wrapperArgs = wrapper.override.__functionArgs;
+      wrapperArgs = super.lib.functionArgs wrapper.override;
       wrapperHasArg = arg: builtins.hasAttr arg wrapperArgs;
 
       nameArg = if wrapperHasArg "applicationName"
