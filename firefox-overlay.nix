@@ -15,7 +15,7 @@ let
   # update the version, as done in
   # https://github.com/mozilla-releng/ship-it/pull/182
   firefox_versions = with builtins;
-    fromJSON (readFile (fetchurl https://product-details.mozilla.org/1.0/firefox_versions.json));
+    fromJSON (readFile (fetchurl "https://product-details.mozilla.org/1.0/firefox_versions.json"));
 
   arch = if self.stdenv.system == "i686-linux"
     then "linux-i686"

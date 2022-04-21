@@ -111,9 +111,9 @@ let
       path =
         map (s:
           if substring 0 1 s != ''"'' then s #"
-          else unescapeString s 
+          else unescapeString s
         ) matchPath;
-    in 
+    in
       assert matchPath != null;
       # assert trace "Path: ${token'}; match as ${toString path}" true;
       path;
@@ -194,7 +194,7 @@ let
           value =
             let v = catAttrs n sets; in
             # assert trace "Visiting ${n}" true;
-            if tail v == [] then head v 
+            if tail v == [] then head v
             else if isList (head v) then concatLists v
             else if isAttrs (head v) then zipAttrs v
             else throw "cannot merge sections";
@@ -206,7 +206,6 @@ in
 {
   testing = fromTOML (builtins.readFile ./channel-rust-nightly.toml);
   testing_url = fromTOML (builtins.readFile (builtins.fetchurl
-  https://static.rust-lang.org/dist/channel-rust-nightly.toml));
+  "https://static.rust-lang.org/dist/channel-rust-nightly.toml"));
   inherit fromTOML;
 }
-
