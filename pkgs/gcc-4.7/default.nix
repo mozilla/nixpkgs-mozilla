@@ -86,7 +86,7 @@ let version = "4.7.3";
     # Antlr (optional) allows the Java `gjdoc' tool to be built.  We want a
     # binary distribution here to allow the whole chain to be bootstrapped.
     javaAntlr = fetchurl {
-      url = http://www.antlr.org/download/antlr-3.1.3.jar;
+      url = "http://www.antlr.org/download/antlr-3.1.3.jar";
       sha256 = "1f41j0y4kjydl71lqlvr73yagrs2jsg1fjymzjz66mjy7al5lh09";
     };
 
@@ -111,7 +111,7 @@ let version = "4.7.3";
         withFpu = if gccFpu != null then " --with-fpu=${gccFpu}" else "";
         withFloat = if gccFloat != null then " --with-float=${gccFloat}" else "";
         withMode = if gccMode != null then " --with-mode=${gccMode}" else "";
-      in 
+      in
         (withArch +
         withCpu +
         withAbi +
@@ -495,7 +495,7 @@ stdenv.mkDerivation ({
   inherit enableParallelBuilding;
 
   meta = {
-    homepage = http://gcc.gnu.org/;
+    homepage = "http://gcc.gnu.org/";
     license = "GPLv3+";  # runtime support libraries are typically LGPLv3+
     description = "GNU Compiler Collection, version ${version}"
       + (if stripped then "" else " (with debugging info)");
