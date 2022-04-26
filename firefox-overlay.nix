@@ -182,43 +182,45 @@ let
           + optionalString (96 >= getMajorVersion version) (":" + makeLibraryPath [self.xorg.libXtst]);
       }));
       in wrapFirefoxCompat { inherit version pkg; };
-in
 
-{
-  lib = super.lib // {
-    firefoxOverlay = {
-      inherit pgpKey firefoxVersion versionInfo firefox_versions;
-    };
-  };
-
-  # Set of packages which are automagically updated. Do not rely on these for
-  # reproducible builds.
-  latest = (super.latest or {}) // {
-    firefox-nightly-bin = firefoxVersion {
+  firefoxVariants = {
+    firefox-nightly-bin = {
       name = "Firefox Nightly";
       wmClass = "firefox-nightly";
       version = firefox_versions.FIREFOX_NIGHTLY;
       release = false;
     };
-    firefox-beta-bin = firefoxVersion {
+    firefox-beta-bin = {
       name = "Firefox Beta";
       wmClass = "firefox-beta";
       version = firefox_versions.LATEST_FIREFOX_DEVEL_VERSION;
       release = true;
     };
-    firefox-bin = firefoxVersion {
+    firefox-bin = {
       name = "Firefox";
       wmClass = "firefox";
       version = firefox_versions.LATEST_FIREFOX_VERSION;
       release = true;
     };
-    firefox-esr-bin = firefoxVersion {
+    firefox-esr-bin = {
       name = "Firefox ESR";
       wmClass = "firefox";
       version = firefox_versions.FIREFOX_ESR;
       release = true;
     };
   };
+in
+
+{
+  lib = super.lib // {
+    firefoxOverlay = {
+      inherit pgpKey firefoxVersion versionInfo firefox_versions firefoxVariants;
+    };
+  };
+
+  # Set of packages which are automagically updated. Do not rely on these for
+  # reproducible builds.
+  latest = (super.latest or {}) // (builtins.mapAttrs (n: v: firefoxVersion v) firefoxVariants);
 
   # Set of packages which used to build developer environment
   devEnv = (super.shell or {}) // {
