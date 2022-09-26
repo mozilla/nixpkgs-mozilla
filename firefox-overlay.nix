@@ -87,7 +87,7 @@ let
   # From the version info, check the authenticity of the check sum file, such
   # that we guarantee that we have
   verifyFileAuthenticity = { file, asc }:
-    if asc == null then "" else super.runCommandNoCC "check-firefox-signature" {
+    if asc == null then "" else super.runCommand "check-firefox-signature" {
       buildInputs = [ self.gnupg ];
       FILE = file;
       ASC = asc;
