@@ -9,7 +9,6 @@
     overlays = {
       lib = import ./lib-overlay.nix;
       rust = import ./rust-overlay.nix;
-      rr = import ./rr-overlay.nix;
       firefox = import ./firefox-overlay.nix;
       git-cinnabar = import ./git-cinnabar-overlay.nix;
     };
