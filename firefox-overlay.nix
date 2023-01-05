@@ -54,6 +54,9 @@ let
       in rec {
         chksum = "${dir}/SHA512SUMS";
         chksumSig = "${chksum}.asc";
+        chksumSha256 = hashFile "sha256" (fetchurl "${dir}/SHA512SUMS");
+        chksumSigSha256 = hashFile "sha256" (fetchurl "${chksum}.asc");
+        inherit file;
         url = "${dir}/${file}";
         sha512 = sha512Of chksum file;
         sig = null;
@@ -86,11 +89,12 @@ let
 
   # From the version info, check the authenticity of the check sum file, such
   # that we guarantee that we have
-  verifyFileAuthenticity = { file, asc }:
-    if asc == null then "" else super.runCommand "check-firefox-signature" {
+  verifyFileAuthenticity = { file, sha512, chksum, chksumSig }:
+    assert extractSha512Sum (builtins.readFile chksum) file == sha512;
+    super.runCommand "check-firefox-signature" {
       buildInputs = [ self.gnupg ];
-      FILE = file;
-      ASC = asc;
+      FILE = chksum;
+      ASC = chksumSig;
     } ''
       HOME=`mktemp -d`
       set -eu
@@ -111,8 +115,9 @@ let
         # executed once the verifyAuthenticity script finished successfully.
         postFetch = ''
           : # Authenticity Check (${verifyFileAuthenticity {
-            file = builtins.fetchurl info.chksum;
-            asc = builtins.fetchurl info.chksumSig;
+            inherit (info) file sha512;
+            chksum = builtins.fetchurl { url = info.chksum; sha256 = info.chksumSha256; };
+            chksumSig = builtins.fetchurl { url = info.chksumSig; sha256 = info.chksumSigSha256; };
           }})
         '';
       }
