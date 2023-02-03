@@ -159,13 +159,13 @@ let
               local dir="$1"
               [ -e "$dir" ] || return 0
 
-              header "Patching interpreter of ELF executables and libraries in $dir"
+              echo "Patching interpreter of ELF executables and libraries in $dir"
               local i
               while IFS= read -r -d ''$'\0' i; do
                 if [[ "$i" =~ .build-id ]]; then continue; fi
                 if ! isELF "$i"; then continue; fi
                 echo "setting interpreter of $i"
-                
+
                 if [[ -x "$i" ]]; then
                   # Handle executables
                   patchelf \
