@@ -282,6 +282,7 @@ let
           namesAndSrcs = getComponents pkgs.pkg name targets extensions targetExtensions stdenv fetchurl;
           components = installComponents stdenv namesAndSrcs;
           componentsOuts = builtins.map (comp: (super.lib.strings.escapeNixString (super.lib.getOutput "out" comp))) components;
+          sharedLibraryExtensions = stdenv.hostPlatform.extensions.sharedLibrary;
         in
           super.pkgs.symlinkJoin {
             name = name + "-" + version;
@@ -305,9 +306,9 @@ let
 
               # Here we copy the librustc_driver-*.so to our derivation.
               # The SYSROOT is determined based on the path of this library.
-              if test "" != $out/lib/librustc_driver-*.so &> /dev/null; then
-                RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*.so)
-                rm $out/lib/librustc_driver-*.so
+              if test "" != $out/lib/librustc_driver-*${sharedLibraryExtensions} &> /dev/null; then
+                RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*${sharedLibraryExtensions})
+                rm $out/lib/librustc_driver-*${sharedLibraryExtensions}
                 cp $RUSTC_DRIVER_PATH $out/lib/
               fi
             '';
