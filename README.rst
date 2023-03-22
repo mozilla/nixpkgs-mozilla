@@ -33,6 +33,36 @@ Firefox trademark, held by Mozilla), so you will need to set
 ``nixpkgs.config.allowUnfree`` in order to use them. More info `here
 <https://nixos.wiki/wiki/FAQ#How_can_I_install_a_proprietary_or_unfree_package.3F>`_.
 
+Flake usage
+~~~~~~~~~~~
+
+Latest versions of Firefox can be started using flakes, as follows:
+
+``nix run --impure -no-write-lock-file github:mozilla/nixpkgs-mozilla?dir=flakes/nixos-22.11#firefox-nightly``
+
+- The ``--impure`` command line argument is used to allow pulling the latest
+  pre-built version of Firefox from `archive.mozilla.org`, and checking for the
+  correct binary signature.
+
+- The ``--no-write-lock-file`` command line argument is to work-around the fact
+  that this repository does not include lock files. This repository deliberately
+  does not include lock files! This is made on purpose to use the latest version
+  of Nixpkgs with all the security fixes applied, instead of using a frozen
+  version of Nixpkgs anchored in the past which might have known
+  vulnerabilities.
+
+- The ``github:mozilla/nixpkgs-mozilla`` is this repository, each flake contains a
+  commented line in case you might want to use local path instead.
+
+- The ``?dir=flakes/nixos-22.11`` is used to refer to the non-default flake
+  which includes a specific version of Nixpkgs. This one can be changed based on
+  the content of the `flakes` directory, such as ``?dir=flakes/nixos-unstable``.
+
+- The ``#firefox-nightly`` is the package name, which is also the default in
+  this case, and can be omitted when looking at firefox-nightly. This can also
+  be replaced to use different versions such as `firefox-beta`,
+  `firefox-release` and `firefox-esr`.
+
 Rust overlay
 ------------
 
@@ -72,6 +102,7 @@ Example of using in ```shell.nix```:
 
 Flake usage
 -----------
+
 This repository contains a minimal flake interface for the various
 overlays in this repository. To use it in your own flake, add it as
 an input to your ``flake.nix``:
@@ -89,6 +120,7 @@ an input to your ``flake.nix``:
      };
    };
   }
+
 The available overlays are ``nixpkgs-mozilla.overlay`` for the
 default overlay containing everything, and
 ``nixpkgs-mozilla.{lib, rust, rr, firefox, git-cinnabar}-overlay``
