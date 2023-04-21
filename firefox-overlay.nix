@@ -185,6 +185,19 @@ let
         libPath = with super.lib;
           old.libPath
           + optionalString (96 >= getMajorVersion version) (":" + makeLibraryPath [self.xorg.libXtst]);
+
+        # Since 2023-04-13-15-26-44 114.0a1, Firefox has new binaries checking
+        # for hardware, and preventing displays of some video calls services.
+        installPhase = old.installPhase + ''
+          for executable in \
+            glxtest vaapitest
+          do
+            if [ -e "$out/usr/lib/firefox-bin-${old.version}/$executable" ]; then
+              patchelf --interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+                "$out/usr/lib/firefox-bin-${old.version}/$executable"
+            fi
+          done
+        '';
       }));
       in wrapFirefoxCompat { inherit version pkg; };
 
