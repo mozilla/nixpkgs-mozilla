@@ -289,19 +289,20 @@ let
                   cp --remove-destination "$(realpath -e $target)" $target
                 fi
 
-                # The SYSROOT is determined by using the librustc_driver-*.so.
+                # The SYSROOT is determined by using the librustc_driver-*.{so,dylib}.
                 # So, we need to point to the *.so files in our derivation.
-                chmod u+w $target
-                patchelf --set-rpath "$out/lib" $target || true
+                shopt -u nullglob
+                if ls $out/lib/*.so &>/dev/null; then
+                  chmod u+w $target
+                  patchelf --set-rpath "$out/lib" $target || true
+                fi
               done
 
-              # Here we copy the librustc_driver-*.so to our derivation.
+              # Here we copy the librustc_driver-*.{so,dylib} to our derivation.
               # The SYSROOT is determined based on the path of this library.
-              if ls $out/lib/librustc_driver-*.so &> /dev/null; then
-                RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*.so)
-                rm $out/lib/librustc_driver-*.so
-                cp $RUSTC_DRIVER_PATH $out/lib/
-              fi
+              shopt -s nullglob
+              RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*.{so,dylib})
+              cp --remove-destination $RUSTC_DRIVER_PATH $out/lib/
             '';
 
             # Export the manifest file as part of the nix-support files such
