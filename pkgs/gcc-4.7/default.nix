@@ -90,7 +90,7 @@ let version = "4.7.3";
       sha256 = "1f41j0y4kjydl71lqlvr73yagrs2jsg1fjymzjz66mjy7al5lh09";
     };
 
-    xlibs = [
+    xorg = [
       libX11 libXt libSM libICE libXtst libXrender libXrandr libXi
       xproto renderproto xextproto inputproto randrproto
     ];
@@ -199,7 +199,7 @@ let version = "4.7.3";
 in
 
 # We need all these X libraries when building AWT with GTK+.
-assert gtk != null -> (filter (x: x == null) xlibs) == [];
+assert gtk != null -> (filter (x: x == null) xorg) == [];
 
 stdenv.mkDerivation ({
   name = "${name}${if stripped then "" else "-debug"}-${version}" + crossNameAddon;
@@ -279,7 +279,7 @@ stdenv.mkDerivation ({
     ++ (optional (cloog != null) cloog)
     ++ (optional (zlib != null) zlib)
     ++ (optionals langJava [ boehmgc zip unzip ])
-    ++ (optionals javaAwtGtk ([ gtk libart_lgpl ] ++ xlibs))
+    ++ (optionals javaAwtGtk ([ gtk libart_lgpl ] ++ xorg))
     ++ (optionals (cross != null) [binutilsCross])
     ++ (optionals langAda [gnatboot])
     ++ (optionals langVhdl [gnat])
@@ -458,7 +458,7 @@ stdenv.mkDerivation ({
             (intersperse ":" (map (x: x + "/include")
                                   (optionals (zlib != null) [ zlib ]
                                    ++ optionals langJava [ boehmgc ]
-                                   ++ optionals javaAwtGtk xlibs
+                                   ++ optionals javaAwtGtk xorg
                                    ++ optionals javaAwtGtk [ gmp mpfr ]
                                    ++ optional (libpthread != null) libpthread
                                    ++ optional (libpthreadCross != null) libpthreadCross
@@ -473,7 +473,7 @@ stdenv.mkDerivation ({
                    (intersperse ":" (map (x: x + "/lib")
                                          (optionals (zlib != null) [ zlib ]
                                           ++ optionals langJava [ boehmgc ]
-                                          ++ optionals javaAwtGtk xlibs
+                                          ++ optionals javaAwtGtk xorg
                                           ++ optionals javaAwtGtk [ gmp mpfr ]
                                           ++ optional (libpthread != null) libpthread)));
 
