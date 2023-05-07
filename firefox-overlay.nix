@@ -96,10 +96,9 @@ let
       FILE = chksum;
       ASC = chksumSig;
     } ''
-      HOME=`mktemp -d`
       set -eu
-      gpg --import < ${pgpKey}
-      gpgv --keyring=$HOME/.gnupg/pubring.kbx $ASC $FILE
+      gpg --dearmor < ${pgpKey} > keyring.gpg
+      gpgv --keyring=./keyring.gpg $ASC $FILE
       mkdir $out
     '';
 
@@ -131,11 +130,10 @@ let
         postFetch =
           let asc = super.fetchurl { url = info.sig; sha512 = info.sigSha512; }; in ''
           : # Authenticity Check
-          HOME=`mktemp -d`
           set -eu
           export PATH="$PATH:${self.gnupg}/bin/"
-          gpg --import < ${pgpKey}
-          gpgv --keyring=$HOME/.gnupg/pubring.kbx ${asc} $out
+          gpg --dearmor < ${pgpKey} > keyring.gpg
+          gpgv --keyring=./keyring.gpg ${asc} $out
         '';
       };
 
