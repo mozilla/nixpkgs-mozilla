@@ -4,8 +4,8 @@ self: super:
 let
   # This URL needs to be updated about every 2 years when the subkey is rotated.
   pgpKey = super.fetchurl {
-    url = "https://download.cdn.mozilla.net/pub/firefox/candidates/89.0-candidates/build2/KEY";
-    sha256 = "1zm3cq854v4aabzzginmjxdm4gidcf5b522h58272fb0x4z3nimw";
+    url = "https://download.cdn.mozilla.net/pub/firefox/candidates/113.0.1-candidates/build1/KEY";
+    sha256 = "beaf64d50d347175af3308e73aaeeb547f912e453bb15594122cb669cc4cabfb";
   };
 
   # This file is currently maintained manually, if this Nix expression attempt
@@ -185,6 +185,19 @@ let
         libPath = with super.lib;
           old.libPath
           + optionalString (96 >= getMajorVersion version) (":" + makeLibraryPath [self.xorg.libXtst]);
+
+        # Since 2023-04-13-15-26-44 114.0a1, Firefox has new binaries checking
+        # for hardware, and preventing displays of some video calls services.
+        installPhase = old.installPhase + ''
+          for executable in \
+            glxtest vaapitest
+          do
+            if [ -e "$out/usr/lib/firefox-bin-${old.version}/$executable" ]; then
+              patchelf --interpreter "$(cat $NIX_CC/nix-support/dynamic-linker)" \
+                "$out/usr/lib/firefox-bin-${old.version}/$executable"
+            fi
+          done
+        '';
       }));
       in wrapFirefoxCompat { inherit version pkg; };
 
