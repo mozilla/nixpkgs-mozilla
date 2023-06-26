@@ -289,17 +289,17 @@ let
                   cp --remove-destination "$(realpath -e $target)" $target
                 fi
 
-                # The SYSROOT is determined by using the librustc_driver-*.so.
-                # So, we need to point to the *.so files in our derivation.
+                # The SYSROOT is determined by using the librustc_driver-*.{so,dylib}.
+                # So, we need to point to the *.{so,dylib} files in our derivation.
                 chmod u+w $target
                 patchelf --set-rpath "$out/lib" $target || true
               done
 
-              # Here we copy the librustc_driver-*.so to our derivation.
+              # Here we copy the librustc_driver-*.{so,dylib} to our derivation.
               # The SYSROOT is determined based on the path of this library.
-              if ls $out/lib/librustc_driver-*.so &> /dev/null; then
-                RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*.so)
-                rm $out/lib/librustc_driver-*.so
+              if ls $out/lib/librustc_driver-*.{so,dylib} &> /dev/null; then
+                RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*.{so,dylib})
+                rm $out/lib/librustc_driver-*.{so,dylib}
                 cp $RUSTC_DRIVER_PATH $out/lib/
               fi
             '';
