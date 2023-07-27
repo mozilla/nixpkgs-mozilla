@@ -287,12 +287,12 @@ let
               for target in $out/bin/{rustc,rustdoc} $out/lib/rustlib/etc/*.py; do
                 if [ -e $target ]; then
                   cp --remove-destination "$(realpath -e $target)" $target
-                fi
 
-                # The SYSROOT is determined by using the librustc_driver-*.so.
-                # So, we need to point to the *.so files in our derivation.
-                chmod u+w $target
-                patchelf --set-rpath "$out/lib" $target || true
+                  # The SYSROOT is determined by using the librustc_driver-*.so.
+                  # So, we need to point to the *.so files in our derivation.
+                  chmod u+w $target
+                  patchelf --set-rpath "$out/lib" $target || true
+                fi
               done
 
               # Here we copy the librustc_driver-*.so to our derivation.
