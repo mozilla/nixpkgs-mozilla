@@ -91,7 +91,7 @@ an input to your ``flake.nix``:
   }
 The available overlays are ``nixpkgs-mozilla.overlay`` for the
 default overlay containing everything, and
-``nixpkgs-mozilla.{lib, rust, rr, firefox, git-cinnabar}-overlay``
+``nixpkgs-mozilla.overlays.{lib, rust, rr, firefox, git-cinnabar}``
 respectively. Depending on your use case, you might need to set the
 ``--impure`` flag when invoking the ``nix`` command. This is because
 this repository fetches resources from non-pinned URLs

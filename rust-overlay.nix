@@ -287,12 +287,9 @@ let
               for target in $out/bin/{rustc,rustdoc} $out/lib/rustlib/etc/*.py; do
                 if [ -e $target ]; then
                   cp --remove-destination "$(realpath -e $target)" $target
-                fi
 
-                # The SYSROOT is determined by using the librustc_driver-*.{so,dylib}.
-                # So, we need to point to the *.so files in our derivation.
-                shopt -u nullglob
-                if ls $out/lib/*.so &>/dev/null; then
+                  # The SYSROOT is determined by using the librustc_driver-*.so.
+                  # So, we need to point to the *.so files in our derivation.
                   chmod u+w $target
                   patchelf --set-rpath "$out/lib" $target || true
                 fi
@@ -300,9 +297,14 @@ let
 
               # Here we copy the librustc_driver-*.{so,dylib} to our derivation.
               # The SYSROOT is determined based on the path of this library.
-              shopt -s nullglob
-              RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*.{so,dylib})
-              cp --remove-destination $RUSTC_DRIVER_PATH $out/lib/
+              if test "" != $out/lib/librustc_driver-*.so &> /dev/null; then
+                RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*.so)
+                cp --remove-destination $RUSTC_DRIVER_PATH $out/lib/
+              fi
+              if test "" != $out/lib/librustc_driver-*.dylib &> /dev/null; then
+                RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*.dylib)
+                cp --remove-destination $RUSTC_DRIVER_PATH $out/lib/
+              fi
             '';
 
             # Export the manifest file as part of the nix-support files such
