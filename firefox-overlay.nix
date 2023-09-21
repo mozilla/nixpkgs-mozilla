@@ -155,7 +155,10 @@ let
 
       requiredArgs = {
         "${nameArg}" = "firefox";
-        pname = "firefox-bin";
+        # Note: the default for binary wouldbe to include the -bin suffix,
+        # however the pname aliases the default program to be used with `nix
+        # run` command.
+        pname = "firefox";
         desktopName = version.name;
       };
 
