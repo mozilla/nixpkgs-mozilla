@@ -42,7 +42,7 @@ let
 
   # The timestamp argument is a yyyy-mm-dd-hh-mm-ss date, which corresponds to
   # one specific version. This is used mostly for bisecting.
-  versionInfo = { name, version, release, system ? arch, timestamp ? null, wmClass, info ? null }: with builtins;
+  versionInfo = { name, version, release, system ? arch, timestamp ? null, info ? null, ... }: with builtins;
     if (info != null) then info else
     if release then
       # For versions such as Beta & Release:
@@ -137,35 +137,6 @@ let
         '';
       };
 
-  # Convert The version number from "96.0a1" to 96 integer.
-  getMajorVersion = version:
-    with builtins;
-    fromJSON (head (match "([0-9]+)[.].*" version.version));
-
-  wrapFirefoxCompat = { version, pkg }:
-    let
-      wrapper = super.wrapFirefox pkg {};
-
-      wrapperArgs = super.lib.functionArgs wrapper.override;
-      wrapperHasArg = arg: builtins.hasAttr arg wrapperArgs;
-
-      nameArg = if wrapperHasArg "applicationName"
-                  then "applicationName"
-                  else "browserName";
-
-      requiredArgs = {
-        "${nameArg}" = "firefox";
-        pname = "firefox-bin";
-        desktopName = version.name;
-      };
-
-      extraArgs = if wrapperHasArg "wmClass"
-                    then { wmClass = version.wmClass; }
-                    else {};
-
-      allArgs = requiredArgs // extraArgs;
-    in wrapper.override allArgs;
-
   firefoxVersion = version:
     let
       info = versionInfo version;
@@ -174,33 +145,42 @@ let
           version = version.version;
           sources = { inherit (info) url sha512; };
         };
+        channel = version.channel;
       }).overrideAttrs (old: {
         # Add a dependency on the signature check.
         src = fetchVersion info;
       }));
-      in wrapFirefoxCompat { inherit version pkg; };
+      in super.wrapFirefox pkg {
+        pname = "${pkg.binaryName}-bin";
+        desktopName = version.name;
+        wmClass = version.wmClass;
+      };
 
   firefoxVariants = {
     firefox-nightly-bin = {
       name = "Firefox Nightly";
+      channel = "nightly";
       wmClass = "firefox-nightly";
       version = firefox_versions.FIREFOX_NIGHTLY;
       release = false;
     };
     firefox-beta-bin = {
       name = "Firefox Beta";
+      channel = "beta";
       wmClass = "firefox-beta";
       version = firefox_versions.LATEST_FIREFOX_DEVEL_VERSION;
       release = true;
     };
     firefox-bin = {
       name = "Firefox";
+      channel = "release";
       wmClass = "firefox";
       version = firefox_versions.LATEST_FIREFOX_VERSION;
       release = true;
     };
     firefox-esr-bin = {
       name = "Firefox ESR";
+      channel = "release";
       wmClass = "firefox";
       version = firefox_versions.FIREFOX_ESR;
       release = true;
