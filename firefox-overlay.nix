@@ -151,7 +151,7 @@ let
         src = fetchVersion info;
 
         # inject hacked up patchelf to not break binaries
-        nativeBuildInputs = [
+        nativeBuildInputs = old.nativeBuildInputs or [] ++ [
           (self.callPackage ./pkgs/patchelf {})
         ];
       }));
