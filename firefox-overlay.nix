@@ -149,11 +149,6 @@ let
       }).overrideAttrs (old: {
         # Add a dependency on the signature check.
         src = fetchVersion info;
-
-        # inject hacked up patchelf to not break binaries
-        nativeBuildInputs = old.nativeBuildInputs or [] ++ [
-          (self.callPackage ./pkgs/patchelf {})
-        ];
       }));
       in super.wrapFirefox pkg {
         pname = "${pkg.binaryName}-bin";
