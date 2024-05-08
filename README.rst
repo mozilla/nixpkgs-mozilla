@@ -31,7 +31,7 @@ annoying pop-ups complaining about this.
 Note that all the ``-bin`` packages are "unfree" (because of the
 Firefox trademark, held by Mozilla), so you will need to set
 ``nixpkgs.config.allowUnfree`` in order to use them. More info `here
-<https://nixos.wiki/wiki/FAQ#How_can_I_install_a_proprietary_or_unfree_package.3F>`_.
+<https://wiki.nixos.org/wiki/FAQ#How_can_I_install_a_package_from_unstable_while_remaining_on_the_stable_channel?>`_.
 
 Rust overlay
 ------------
