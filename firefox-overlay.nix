@@ -11,9 +11,9 @@ let
   # This file is currently maintained manually, if this Nix expression attempt
   # to download the wrong version, this is likely to be the problem.
   #
-  # Open a pull request against https://github.com/mozilla-releng/ship-it/ to
+  # Open a pull request against https://github.com/mozilla-releng/shipit to
   # update the version, as done in
-  # https://github.com/mozilla-releng/ship-it/pull/182
+  # https://github.com/mozilla-releng/shipit/pull/1467
   firefox_versions = with builtins;
     fromJSON (readFile (fetchurl "https://product-details.mozilla.org/1.0/firefox_versions.json"));
 
