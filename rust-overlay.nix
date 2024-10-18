@@ -32,6 +32,14 @@ let
           channel_by_version
       );
 
+  # In NixOS 24.11, the `pkgs.rust.toRustTarget` has become deprecated in favor of the
+  # `.rust.rustcTarget` attribute of the platform. This function provides backwards compatibility in
+  # case the caller is using a nixpkgs older than NixOS 24.11.
+  toRustTargetCompat = platform:
+    if platform ? rust && platform.rust ? rustcTarget
+    then platform.rust.rustcTarget
+    else super.rust.toRustTarget platform;
+
   # See https://github.com/rust-lang-nursery/rustup.rs/blob/master/src/dist/src/dist.rs
   defaultDistRoot = "https://static.rust-lang.org";
   manifest_v1_url = {
@@ -59,7 +67,7 @@ let
   getComponentsWithFixedPlatform = pkgs: pkgname: stdenv:
     let
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${super.rust.toRustTarget stdenv.targetPlatform} or pkg.target."*";
+      srcInfo = pkg.target.${toRustTargetCompat stdenv.targetPlatform} or pkg.target."*";
       components = srcInfo.components or [];
       componentNamesList =
         builtins.map (pkg: pkg.pkg) (builtins.filter (pkg: (pkg.target != "*")) components);
@@ -70,7 +78,7 @@ let
     let
       inherit (super.lib) unique;
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${super.rust.toRustTarget stdenv.targetPlatform} or pkg.target."*";
+      srcInfo = pkg.target.${toRustTargetCompat stdenv.targetPlatform} or pkg.target."*";
       extensions = srcInfo.extensions or [];
       extensionNamesList = unique (builtins.map (pkg: pkg.pkg) extensions);
     in
@@ -125,7 +133,7 @@ let
       inherit (super.lib) flatten remove subtractLists unique;
       targetExtensionsToInstall = checkMissingExtensions pkgs pkgname stdenv targetExtensions;
       extensionsToInstall = checkMissingExtensions pkgs pkgname stdenv extensions;
-      hostTargets = [ "*" (super.rust.toRustTarget stdenv.hostPlatform) (super.rust.toRustTarget stdenv.targetPlatform) ];
+      hostTargets = [ "*" (toRustTargetCompat stdenv.hostPlatform) (toRustTargetCompat stdenv.targetPlatform) ];
       pkgTuples = flatten (getTargetPkgTuples pkgs pkgname hostTargets targets stdenv);
       extensionTuples = flatten (map (name: getTargetPkgTuples pkgs name hostTargets targets stdenv) extensionsToInstall);
       targetExtensionTuples = flatten (map (name: getTargetPkgTuples pkgs name targets targets stdenv) targetExtensionsToInstall);
