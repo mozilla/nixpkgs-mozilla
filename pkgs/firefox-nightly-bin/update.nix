@@ -31,10 +31,10 @@ in writeScript "update-firefox-nightly-bin" ''
   {
     version = `echo $nightly_json | jq ."moz_app_version"` + "-" + `echo $nightly_json | jq ."buildid"`;
     sources = [
-      { url = "$url$nightly_file.tar.bz2";
+      { url = "$url$nightly_file.tar.xz";
         locale = "`echo $nightly_file | cut -d"." -f3`";
         arch = "`echo $nightly_file | cut -d"." -f4`";
-        sha512 = "`curl --silent $url$nightly_file.checksums | grep $nightly_file.tar.bz2$ | grep sha512 | cut -d" " -f1`";
+        sha512 = "`curl --silent $url$nightly_file.checksums | grep $nightly_file.tar.xz$ | grep sha512 | cut -d" " -f1`";
       }
     ];
   }

@@ -49,6 +49,7 @@ let
       # https://download.cdn.mozilla.net/pub/firefox/releases/55.0b3/SHA256SUMS
       let
         dir = "https://download.cdn.mozilla.net/pub/firefox/releases/${version}";
+        # TODO: Update the extension once XZ linux builds leave nightly channel
         file = "${system}/en-US/firefox-${version}.tar.bz2";
         sha512Of = chksum: file: extractSha512Sum (readFile (fetchurl chksum)) file;
       in rec {
@@ -73,7 +74,7 @@ let
                 fromJSON (readFile (fetchurl "https://download.cdn.mozilla.net/pub/firefox/nightly/latest-mozilla-central/firefox-${version}.en-US.${system}.buildhub.json"));
             in builtins.replaceStrings [ "/${file}" ] [ "" ] buildhubJSON.download.url
           else "https://download.cdn.mozilla.net/pub/firefox/nightly/${yearOf timestamp}/${monthOf timestamp}/${timestamp}-mozilla-central" ;
-        file = "firefox-${version}.en-US.${system}.tar.bz2";
+        file = "firefox-${version}.en-US.${system}.tar.xz";
         sha512Of = chksum: file: head (match ".*[\n]([0-9a-f]*) sha512 [0-9]* ${file}[\n].*" (readFile (fetchurl chksum)));
       in rec {
         chksum = "${dir}/firefox-${version}.en-US.${system}.checksums";
