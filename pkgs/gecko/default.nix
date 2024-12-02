@@ -1,8 +1,8 @@
 { geckoSrc ? null, lib
 , stdenv, fetchFromGitHub, pythonFull, which, autoconf213, m4
-, perl, unzip, zip, gnumake, yasm, pkgconfig, xlibs, gnome2, pango, freetype, fontconfig, cairo
-, dbus, dbus_glib, alsaLib, libpulseaudio
-, gtk3, glib, gobjectIntrospection, gdk_pixbuf, atk, gtk2
+, perl, unzip, zip, gnumake, yasm, pkgconfig, xorg, gnome2, pango, freetype, fontconfig, cairo
+, dbus, dbus-glib, alsaLib, libpulseaudio
+, gtk3, glib, gobject-introspection, gdk-pixbuf, atk, gtk2
 , git, mercurial, openssl, cmake, procps
 , libnotify
 , valgrind, gdb, rr
@@ -13,7 +13,7 @@
 , llvm, llvmPackages, nasm
 , ccache
 
-, zlib, xorg
+, zlib
 , rust-cbindgen
 , nodejs
 , jsdoc
@@ -46,15 +46,15 @@ let
     # Expected by the configure script
     perl unzip zip gnumake yasm pkgconfig
 
-    xlibs.libICE xlibs.libSM xlibs.libX11 xlibs.libXau xlibs.libxcb
-    xlibs.libXdmcp xlibs.libXext xlibs.libXt xlibs.libXtst
-    xlibs.libXcomposite
-    xlibs.libXfixes
-    xlibs.libXdamage xlibs.libXrender
-    ] ++ (if xlibs ? xproto then [
-    xlibs.damageproto xlibs.printproto xlibs.kbproto
-    xlibs.renderproto xlibs.xextproto xlibs.xproto
-    xlibs.compositeproto xlibs.fixesproto
+    xorg.libICE xorg.libSM xorg.libX11 xorg.libXau xorg.libxcb
+    xorg.libXdmcp xorg.libXext xorg.libXt xorg.libXtst
+    xorg.libXcomposite
+    xorg.libXfixes
+    xorg.libXdamage xorg.libXrender
+    ] ++ (if xorg ? xproto then [
+    xorg.damageproto xorg.printproto xorg.kbproto
+    xorg.renderproto xorg.xextproto xorg.xproto
+    xorg.compositeproto xorg.fixesproto
     ] else [
     xorg.xorgproto
     ]) ++ [
@@ -64,11 +64,11 @@ let
 
     pango freetype fontconfig cairo
 
-    dbus dbus_glib
+    dbus dbus-glib
 
     alsaLib libpulseaudio
 
-    gtk3 glib gobjectIntrospection gdk_pixbuf atk
+    gtk3 glib gobject-introspection gdk-pixbuf atk
     gtk2 gnome2.GConf
 
     rust
