@@ -50,9 +50,11 @@ let
       let
         dir = "https://download.cdn.mozilla.net/pub/firefox/releases/${version}";
         # After version 134 firefox switched to using tar.xz instead of tar.bz2
-        majorVersion = builtins.parseInt 10 ((builtins.splitString "." version).0);
+        majorVersion = super.lib.strings.toInt (
+          builtins.elemAt (super.lib.strings.splitString "." version) 0
+        );
         extension = if majorVersion > 134 then "tar.xz" else "tar.bz2";
-        file = "${system}/en-US/firefox-${version}.{extension}";
+        file = "${system}/en-US/firefox-${version}.${extension}";
         sha512Of = chksum: file: extractSha512Sum (readFile (fetchurl chksum)) file;
       in rec {
         chksum = "${dir}/SHA512SUMS";
