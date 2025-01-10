@@ -49,8 +49,10 @@ let
       # https://download.cdn.mozilla.net/pub/firefox/releases/55.0b3/SHA256SUMS
       let
         dir = "https://download.cdn.mozilla.net/pub/firefox/releases/${version}";
-        # TODO: Update the extension once XZ linux builds leave nightly channel
-        file = "${system}/en-US/firefox-${version}.tar.bz2";
+        # After version 134 firefox switched to using tar.xz instead of tar.bz2
+        majorVersion = builtins.parseInt 10 ((builtins.splitString "." version).0);
+        extension = if majorVersion > 134 then "tar.xz" else "tar.bz2";
+        file = "${system}/en-US/firefox-${version}.{extension}";
         sha512Of = chksum: file: extractSha512Sum (readFile (fetchurl chksum)) file;
       in rec {
         chksum = "${dir}/SHA512SUMS";
