@@ -9,6 +9,7 @@ Current packages
 
 - gecko (https://github.com/mozilla/gecko-dev)
 - firefox-bin variants including Nightly
+- thunderbird-bin variants including Daily
 
 firefox-bin variants
 --------------------
