@@ -145,21 +145,24 @@ let
   firefoxVersion = version:
     let
       info = versionInfo version;
-      pkg = ((self.firefox-bin-unwrapped.override {
+      pkg = ((self.firefox-bin-unwrapped.override ({
         generated = {
           version = version.version;
           sources = { inherit (info) url sha512; };
         };
         channel = version.channel;
-      }).overrideAttrs (old: {
+      } // super.lib.optionalAttrs (self.firefox-bin-unwrapped.passthru ? applicationName) {
+        applicationName = version.name;
+      })).overrideAttrs (old: {
         # Add a dependency on the signature check.
         src = fetchVersion info;
       }));
-      in super.wrapFirefox pkg {
+      in super.wrapFirefox pkg ({
         pname = "${pkg.binaryName}-bin";
-        desktopName = version.name;
         wmClass = version.wmClass;
-      };
+      } // super.lib.optionalAttrs (!self.firefox-bin-unwrapped.passthru ? applicationName) {
+        desktopName = version.name;
+      });
 
   firefoxVariants = {
     firefox-nightly-bin = {
