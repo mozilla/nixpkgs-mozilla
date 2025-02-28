@@ -10,6 +10,7 @@
       lib = import ./lib-overlay.nix;
       rust = import ./rust-overlay.nix;
       firefox = import ./firefox-overlay.nix;
+      thunderbird = import ./thunderbird-overlay.nix;
       git-cinnabar = import ./git-cinnabar-overlay.nix;
     };
   };
