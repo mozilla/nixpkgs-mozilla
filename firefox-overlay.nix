@@ -4,8 +4,8 @@ self: super:
 let
   # This URL needs to be updated about every 2 years when the subkey is rotated.
   pgpKey = super.fetchurl {
-    url = "https://download.cdn.mozilla.net/pub/firefox/candidates/113.0.1-candidates/build1/KEY";
-    sha256 = "beaf64d50d347175af3308e73aaeeb547f912e453bb15594122cb669cc4cabfb";
+    url = "https://download.cdn.mozilla.net/pub/firefox/candidates/138.0b1-candidates/build1/KEY";
+    hash = "sha256-FOGtyDxtZpW6AbNdSj0QoK1AYkQYxHPypT8zJr2XYQk=";
   };
 
   # This file is currently maintained manually, if this Nix expression attempt
