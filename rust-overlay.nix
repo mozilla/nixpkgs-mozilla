@@ -303,12 +303,11 @@ let
                 fi
               done
 
-              # Here we copy the librustc_driver-*.so to our derivation.
+              # Here we copy the librustc_driver-*.{so,dylib} to our derivation.
               # The SYSROOT is determined based on the path of this library.
-              if test "" != $out/lib/librustc_driver-*.so &> /dev/null; then
-                RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*.so)
-                rm $out/lib/librustc_driver-*.so
-                cp $RUSTC_DRIVER_PATH $out/lib/
+              if test "" != $out/lib/librustc_driver-*${stdenv.hostPlatform.extensions.sharedLibrary} &> /dev/null; then
+                RUSTC_DRIVER_PATH=$(realpath -e $out/lib/librustc_driver-*${stdenv.hostPlatform.extensions.sharedLibrary})
+                cp --remove-destination $RUSTC_DRIVER_PATH $out/lib/
               fi
             '';
 
