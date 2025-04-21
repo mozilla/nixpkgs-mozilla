@@ -15,7 +15,17 @@ let
     # Parse *.toml files as TOML
     else if self.lib.strings.hasSuffix ".toml" file then
       ({ channel ? null, date ? null, ... }: { inherit channel date; })
-        (fromTOML (readFile file)).toolchain
+      (let
+        channel_regex = "(stable|beta|nightly).*";
+        date_regex = ".*([0-9]{4}-[0-9]{2}-[0-9]{2})";
+        toolchain = (fromTOML (readFile file)).toolchain;
+        channel_str = toolchain.channel;
+        channel = head (match channel_regex channel_str);
+        date = head (match date_regex channel_str);
+      in {
+        inherit channel;
+        inherit date;
+      })
     else
     # Otherwise, assume the file contains just a rust version string
       let
