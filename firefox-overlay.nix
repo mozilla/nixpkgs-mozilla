@@ -4,8 +4,8 @@ self: super:
 let
   # This URL needs to be updated about every 2 years when the subkey is rotated.
   pgpKey = super.fetchurl {
-    url = "https://download.cdn.mozilla.net/pub/firefox/candidates/113.0.1-candidates/build1/KEY";
-    sha256 = "beaf64d50d347175af3308e73aaeeb547f912e453bb15594122cb669cc4cabfb";
+    url = "https://download.cdn.mozilla.net/pub/firefox/candidates/138.0b1-candidates/build1/KEY";
+    hash = "sha256-FOGtyDxtZpW6AbNdSj0QoK1AYkQYxHPypT8zJr2XYQk=";
   };
 
   # This file is currently maintained manually, if this Nix expression attempt
@@ -49,8 +49,12 @@ let
       # https://download.cdn.mozilla.net/pub/firefox/releases/55.0b3/SHA256SUMS
       let
         dir = "https://download.cdn.mozilla.net/pub/firefox/releases/${version}";
-        # TODO: Update the extension once XZ linux builds leave nightly channel
-        file = "${system}/en-US/firefox-${version}.tar.bz2";
+        # After version 134 firefox switched to using tar.xz instead of tar.bz2
+        majorVersion = super.lib.strings.toInt (
+          builtins.elemAt (super.lib.strings.splitString "." version) 0
+        );
+        extension = if majorVersion > 134 then "tar.xz" else "tar.bz2";
+        file = "${system}/en-US/firefox-${version}.${extension}";
         sha512Of = chksum: file: extractSha512Sum (readFile (fetchurl chksum)) file;
       in rec {
         chksum = "${dir}/SHA512SUMS";
@@ -141,21 +145,24 @@ let
   firefoxVersion = version:
     let
       info = versionInfo version;
-      pkg = ((self.firefox-bin-unwrapped.override {
+      pkg = ((self.firefox-bin-unwrapped.override ({
         generated = {
           version = version.version;
           sources = { inherit (info) url sha512; };
         };
         channel = version.channel;
-      }).overrideAttrs (old: {
+      } // super.lib.optionalAttrs (self.firefox-bin-unwrapped.passthru ? applicationName) {
+        applicationName = version.name;
+      })).overrideAttrs (old: {
         # Add a dependency on the signature check.
         src = fetchVersion info;
       }));
-      in super.wrapFirefox pkg {
+      in super.wrapFirefox pkg ({
         pname = "${pkg.binaryName}-bin";
-        desktopName = version.name;
         wmClass = version.wmClass;
-      };
+      } // super.lib.optionalAttrs (!self.firefox-bin-unwrapped.passthru ? applicationName) {
+        desktopName = version.name;
+      });
 
   firefoxVariants = {
     firefox-nightly-bin = {
