@@ -77,6 +77,7 @@ overlays in this repository. To use it in your own flake, add it as
 an input to your ``flake.nix``:
 
 .. code:: nix
+
  {
    inputs.nixpkgs.url = github:NixOS/nixpkgs;
    inputs.nixpkgs-mozilla.url = github:mozilla/nixpkgs-mozilla;
