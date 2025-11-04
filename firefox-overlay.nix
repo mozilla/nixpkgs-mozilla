@@ -150,6 +150,7 @@ let
           version = version.version;
           sources = { inherit (info) url sha512; };
         };
+      } // super.lib.optionalAttrs (super.lib.functionArgs self.firefox-bin-unwrapped.override ? channel) {
         channel = version.channel;
       } // super.lib.optionalAttrs (self.firefox-bin-unwrapped.passthru ? applicationName) {
         applicationName = version.name;
