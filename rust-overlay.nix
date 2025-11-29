@@ -127,13 +127,15 @@ let
     in
       extensionsToInstall;
 
-  getComponents = pkgs: pkgname: targets: extensions: targetExtensions: stdenv: fetchurl:
+  getComponents = pkgs: pkgname: extraTargets: extensions: targetExtensions: stdenv: fetchurl:
     let
       inherit (builtins) head map;
       inherit (super.lib) flatten remove subtractLists unique;
       targetExtensionsToInstall = checkMissingExtensions pkgs pkgname stdenv targetExtensions;
       extensionsToInstall = checkMissingExtensions pkgs pkgname stdenv extensions;
-      hostTargets = [ "*" (toRustTargetCompat stdenv.hostPlatform) (toRustTargetCompat stdenv.targetPlatform) ];
+      hostTargets = [ "*" (toRustTargetCompat stdenv.hostPlatform) ];
+      implicitTargets = subtractLists hostTargets [ (toRustTargetCompat stdenv.targetPlatform) ];
+      targets = unique (extraTargets ++ implicitTargets);
       pkgTuples = flatten (getTargetPkgTuples pkgs pkgname hostTargets targets stdenv);
       extensionTuples = flatten (map (name: getTargetPkgTuples pkgs name hostTargets targets stdenv) extensionsToInstall);
       targetExtensionTuples = flatten (map (name: getTargetPkgTuples pkgs name targets targets stdenv) targetExtensionsToInstall);
