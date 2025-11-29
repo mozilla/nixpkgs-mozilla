@@ -67,7 +67,7 @@ let
   getComponentsWithFixedPlatform = pkgs: pkgname: stdenv:
     let
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${toRustTargetCompat stdenv.targetPlatform} or pkg.target."*";
+      srcInfo = pkg.target.${toRustTargetCompat stdenv.hostPlatform} or pkg.target."*";
       components = srcInfo.components or [];
       componentNamesList =
         builtins.map (pkg: pkg.pkg) (builtins.filter (pkg: (pkg.target != "*")) components);
@@ -78,7 +78,7 @@ let
     let
       inherit (super.lib) unique;
       pkg = pkgs.${pkgname};
-      srcInfo = pkg.target.${toRustTargetCompat stdenv.targetPlatform} or pkg.target."*";
+      srcInfo = pkg.target.${toRustTargetCompat stdenv.hostPlatform} or pkg.target."*";
       extensions = srcInfo.extensions or [];
       extensionNamesList = unique (builtins.map (pkg: pkg.pkg) extensions);
     in
