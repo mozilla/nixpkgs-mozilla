@@ -110,7 +110,12 @@ let
   # From the version info, create a fetchurl derivation which will get the
   # sources from the remote.
   fetchVersion = info:
-    if info.chksumSig != null then
+    if info.verifiedByHand or false then
+      # Set info.verifiedByHand = true; when testing with tarball.
+      super.fetchurl {
+        inherit (info) url sha512;
+      }
+    else if info.chksumSig != null then
       super.fetchurl {
         inherit (info) url sha512;
 
@@ -142,15 +147,45 @@ let
         '';
       };
 
-  firefoxVersion = version:
+  versionWithDefaults = version:
+    { name = "Firefox Twilight";
+      version = "0.0a1";
+      channel = "twilight";
+      wmClass = "firefox-twilight";
+      release = false;
+      # info attribute set is either null, in which case it is infered by
+      # versionInfo, or it should be an attribute set with either:
+      #
+      #   1. Manual verification of packages:
+      #     url = "...";
+      #     sha512 = "...";
+      #     verifiedByHand = true;
+      #
+      #   2. Using a checksum file, which is itself verified using the gpg key.
+      #     url = "...";
+      #     file = "...";
+      #     sha512 = "...";
+      #     chksum = "...";
+      #     chksumSha256 = "...";
+      #     chksumSig = "...";
+      #     chksumSigSha256 = "...";
+      #
+      #   3. Using the gpg key on the archive
+      #     url = "...";
+      #     sha512 = "...";
+      #     sig = "...";
+      #     sigSha512 = "...";
+    } // version;
+
+  firefoxVersion = version':
     let
+      version = versionWithDefaults version';
       info = versionInfo version;
       pkg = ((self.firefox-bin-unwrapped.override ({
         generated = {
           version = version.version;
           sources = { inherit (info) url sha512; };
         };
-        channel = version.channel;
       } // super.lib.optionalAttrs (self.firefox-bin-unwrapped.passthru ? applicationName) {
         applicationName = version.name;
       })).overrideAttrs (old: {
