@@ -1,3 +1,22 @@
+This repository is no longer maintained.
+
+While being unmaintained, it might still work for a while and even fix itself by
+magic, as it pulls data directly from Mozilla servers, and it builds on top of
+Nixpkgs recipes.
+
+Otherwise, it is recommended to switch to the `flake-firefox-nightly
+<https://github.com/nix-community/flake-firefox-nightly>`_ repository, or any
+alternatives listed on the `wiki
+<https://wiki.nixos.org/wiki/Firefox/en#Firefox_Variants>`_. Note that using the
+flake-based alternative implies that you have to update the flake regularly with
+``nix flake update flake-firefox-nightly`` as opposed to this repository which
+was using impure lookup of Mozilla servers and verifying the checksums. If the
+command troubles you too much, you might consider adding a cron-jobs to run the
+command for you.
+
+Please remember this repository as `the first Nixpkgs Overlay
+<https://github.com/NixOS/nixpkgs/pull/21243>`_.
+
 nixpkgs-mozilla
 ===============
 
