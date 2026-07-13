@@ -1,3 +1,22 @@
+This repository is no longer maintained.
+
+While being unmaintained, it might still work for a while and even fix itself by
+magic, as it pulls data directly from Mozilla servers, and it builds on top of
+Nixpkgs recipes.
+
+Otherwise, it is recommended to switch to the `flake-firefox-nightly
+<https://github.com/nix-community/flake-firefox-nightly>`_ repository, or any
+alternatives listed on the `wiki
+<https://wiki.nixos.org/wiki/Firefox/en#Firefox_Variants>`_. Note that using the
+flake-based alternative implies that you have to update the flake regularly with
+``nix flake update flake-firefox-nightly`` as opposed to this repository which
+was using impure lookup of Mozilla servers and verifying the checksums. If the
+command troubles you too much, you might consider adding a cron-jobs to run the
+command for you.
+
+Please remember this repository as `the first Nixpkgs Overlay
+<https://github.com/NixOS/nixpkgs/pull/21243>`_.
+
 nixpkgs-mozilla
 ===============
 
@@ -77,6 +96,7 @@ overlays in this repository. To use it in your own flake, add it as
 an input to your ``flake.nix``:
 
 .. code:: nix
+
  {
    inputs.nixpkgs.url = github:NixOS/nixpkgs;
    inputs.nixpkgs-mozilla.url = github:mozilla/nixpkgs-mozilla;
@@ -96,6 +116,61 @@ respectively. Depending on your use case, you might need to set the
 ``--impure`` flag when invoking the ``nix`` command. This is because
 this repository fetches resources from non-pinned URLs
 non-reproducibly.
+
+Using Custom Version of Firefox
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use with a custom version of Firefox, you would have multiple choices to
+provide either provide the full file information, such as the url and the
+checksum of the file.
+
+.. code:: nix
+
+ {
+   inputs.nixpkgs.url = nixpkgs/nixos-unstable;
+   inputs.nixpkgs-mozilla.url = github:mozilla/nixpkgs-mozilla;
+
+   outputs = { self, nixpkgs, nixpkgs-mozilla }: {
+     devShell."x86_64-linux" = let
+       pkgs = import nixpkgs { system = "x86_64-linux"; overlays = [ nixpkgs-mozilla.overlay ]; };
+       firefox-nightly150 = pkgs.lib.firefoxOverlay.firefoxVersion {
+         info = {
+           url = "https://download.cdn.mozilla.net/pub/firefox/nightly/2026/03/2026-03-05-00-23-19-mozilla-central/firefox-150.0a1.en-US.linux-x86_64.tar.xz";
+           sha512 = "8faa93d786d618963a7e5f5bf16488523aac2faeb9a27051b1002a44f56a31c93af72db16a00af9ec97786666ff0498a7fc9e95480e967ff1aa55346e57fcef3";
+           verifiedByHand = true;
+         };
+       };
+     in pkgs.mkShell { buildInputs = [ firefox-nightly150 ];};
+   };
+  }
+
+In this example, the checksum is taken out of the checksums file, which is in
+the same directory as the compressed package.
+
+In this particular case, as this is a nightly version, we could have set the
+release attribute to `false`, with the version and the timestamp of the
+directory:
+
+.. code:: nix
+
+       firefox-nightly150 = pkgs.lib.firefoxOverlay.firefoxVersion {
+         release = false;
+         version = "150.0a1";
+         timestamp = "2026-03-05-00-23-19";
+       };
+
+And we could have omitted the timestamp if we only cared about the latest
+nightly version.
+
+To grab a beta or release version, we only have to specify the version number
+and setting the release attribute to `true`:
+
+.. code:: nix
+
+       firefox-nightly149 = pkgs.lib.firefoxOverlay.firefoxVersion {
+         release = true;
+         version = "149.0b1";
+       };
 
 Firefox Development Environment
 -------------------------------
